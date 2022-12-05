@@ -122,6 +122,10 @@ def make_figure_content(
     return [Figure_content(None, length, anomaly) for anomaly in figure_anomalies]
 
 
+######################
+## Example problems ##
+######################
+
 def PA_problem():
     anomalies = [[[25, 39]], [12, 36]]
     metric_list = [metrics.Pointwise_metrics, metrics.PointAdjust]
@@ -133,14 +137,69 @@ def PA_problem():
 
 def late_early_prediction():
 
-    anomalies = [[[7, 14]], [[11, 12]], [[8, 9]]]
+    #anomalies = [[[5, 9], [15, 19]], [8,9], [7,8], [6,7], [5,6], [8,9,18,19],[7,8,17,18],[6,7,16,17], [5,6,15,16]]
+    anomalies = [[[5, 9], [15, 19]], [9], [7], [5], [9,19],[7,17], [5,15]]
     metric_list = [metrics.PointAdjust, metrics.NAB_score]
-    results = [[0, 0, 0, 0, 1, 2, 3, 4, 5], [0, 0, 0, 0, 1, 2, 3, 4, 5]]  # NOTE not correct!
-    length = 19
+    length = 22
+
+    create_table(anomalies, metric_list, length, scale=2)
+
+def length_problem_1():
+
+    anomalies = [[[5,6], [15, 19]], [15,16,17,18,19], [5,6,15,16]]
+    metric_list = [metrics.Pointwise_metrics, metrics.PointAdjust, metrics.Segmentwise_metrics, metrics.Composite_f, metrics.NAB_score, metrics.Affiliation]
+    length = 22
+
+    create_table(anomalies, metric_list, length, scale=2)
+
+def length_problem_2():
+
+    anomalies = [[2,4,6,15,16,17,18,19], [2,3,4,5,6], [2,15,16,17,18,19]]
+    metric_list = [metrics.Pointwise_metrics, metrics.PointAdjust, metrics.Segmentwise_metrics, metrics.Composite_f, metrics.Affiliation]#, metrics.NAB_score]
+    length = 22
+
+    create_table(anomalies, metric_list, length, scale=2)
+
+def short_predictions():
+
+    anomalies = [[ [14, 20]], [3,16], [2,3,4,5,6,7,15,16,17,18,19,20]]
+    metric_list = [metrics.Pointwise_metrics, metrics.PointAdjust, metrics.Segmentwise_metrics, metrics.Composite_f, metrics.NAB_score, metrics.Affiliation]
+    length = 22
 
     create_table(anomalies, metric_list, length, scale=2)
 
 
+def detection_over_covering():
+    anomalies = [[5,12], [20,27]], [[5,12]], [5,20], [[5,12],[20,27]]
+    metric_list = [metrics.Pointwise_metrics, metrics.PointAdjust, metrics.Segmentwise_metrics, metrics.Composite_f, metrics.NAB_score, metrics.Affiliation]
+    length = 28
+
+    create_table(anomalies, metric_list, length, scale=2)
+
+def close_fp():
+    anomalies = [[12,13,14,15],[7,8],[8,9],[9,10],[10,11]]
+    metric_list = [
+            #metrics.Pointwise_metrics, metrics.PointAdjust, metrics.Segmentwise_metrics, metrics.Composite_f, metrics.NAB_score, 
+            metrics.Affiliation]
+    length = 17
+
+    create_table(anomalies, metric_list, length, scale=2)
+
+def concise():
+    anomalies = [[4,5,7,8,10,12], [4,5,7,8,10], [[3,15]]]
+    metric_list = [
+            metrics.Pointwise_metrics, metrics.PointAdjust, metrics.Segmentwise_metrics, metrics.Composite_f, #metrics.NAB_score,
+            metrics.Affiliation]
+    length = 17
+
+    create_table(anomalies, metric_list, length, scale=2)
+
 if __name__ == "__main__":
-    # PA_problem()
-    late_early_prediction()
+    #PA_problem()
+    #late_early_prediction()
+    #length_problem_1()
+    #length_problem_2()
+    #short_predictions()
+    #detection_over_covering()
+    #close_fp()
+    concise()

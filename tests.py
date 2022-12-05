@@ -19,13 +19,14 @@ class Detected_anomalies_tester(unittest.TestCase):
         self.assertRaises(AssertionError, Detected_anomalies, 4, [[2, 4]], [1])
         self.assertRaises(AssertionError, Detected_anomalies, 4, [-1], [1])
 
-    def test_point_to_seg(self):
+    def test_point_to_seq(self):
         anom1 = [3, 4, 5, 7, 8, 11]
         anom2 = [[3, 5], [7, 8], [11, 11]]
         d = Detected_anomalies(12, anom1, anom2)
 
         self.assertTrue(np.array_equal(np.array(anom1), d.get_predicted_anomalies_ptwise()))
         self.assertTrue(np.array_equal(np.array(anom2), d.get_gt_anomalies_segmentwise()))
+
 
     def test_empty_anom(self):
         anom1 = [3, 4, 5, 7, 8]
@@ -97,6 +98,17 @@ class Metrics_tester(unittest.TestCase):
         self.assertEqual(c.p, 0.5)
         self.assertEqual(c.r, 0.2)
 
+    def test_affiliation(self):
+        a = Affiliation(10, [2, 3], [2])
+        f = a.get_score()
+        self.assertEqual(a.p, 1)
+        self.assertTrue(a.r<1 )
+
+        a = Affiliation(10, [2, 3], [2,3,4])
+        f = a.get_score()
+        self.assertTrue(a.p < 1)
+        self.assertEqual(a.r, 1)
+
     def test_NAB(self):
         n = NAB_score(10, [[3, 6]], [3])
         self.assertAlmostEqual(n.get_score(), 1)
@@ -106,6 +118,7 @@ class Metrics_tester(unittest.TestCase):
 
         n = NAB_score(10, [[3, 6]], [1])
         self.assertAlmostEqual(n.get_score(), -1 * 0.11 / 2)
+
 
 
 if __name__ == "__main__":

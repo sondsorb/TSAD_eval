@@ -2,6 +2,8 @@ import numpy as np
 from dataclasses import dataclass
 
 from nabscore import Sweeper
+from affiliation.metrics import pr_from_events as affiliation_pr
+
 
 
 def pointwise_to_segmentwise(pointwise):
@@ -76,11 +78,16 @@ class Detected_anomalies:
         return self._predicted_anomalies_segmentwise
 
 
+def f1_from_pr(p,r):
+    return (2 * r * p) / (r + p)
+
 def f1_score(*args, tp, fp, fn):
     r = recall(tp=tp, fn=fn)
     p = precision(tp=tp, fp=fp)
 
-    return (2 * r * p) / (r + p)
+    #if r == 0 and p == 0:
+    #    return np.nan
+    return f1_from_pr(p,r)
 
 
 def recall(*args, tp, fn):
@@ -140,6 +147,7 @@ class PointAdjust(Pointwise_metrics):
 
 class Segmentwise_metrics(original_PR_metric):
     def __init__(self, *args):
+        self.name = "SF"
         super().__init__(*args)
         self.set_confusion()
 
@@ -180,7 +188,7 @@ class Redefined_PR_metric(Detected_anomalies):
     def get_score(self):
         self.r = self.recall()
         self.p = self.precision()
-        return (2 * self.r * self.p) / (self.r + self.p)
+        return f1_from_pr(self.p,self.r)
 
     def recall(self):
         raise NotImplementedError
@@ -191,6 +199,7 @@ class Redefined_PR_metric(Detected_anomalies):
 
 class Composite_f(Redefined_PR_metric):
     def __init__(self, *args):
+        self.name="CF"
         super().__init__(*args)
 
         self.pointwise_metrics = Pointwise_metrics(*args)
@@ -204,7 +213,26 @@ class Composite_f(Redefined_PR_metric):
 
 
 class Affiliation(Redefined_PR_metric):
-    pass
+    def __init__(self, *args):
+        self.name = "AF"
+        super().__init__(*args)
+
+    def get_score(self):
+        pr_output = affiliation_pr(self._reformat_segments(self.get_predicted_anomalies_segmentwise()), self._reformat_segments(self.get_gt_anomalies_segmentwise()), (0, self._length))
+        self.r = pr_output["recall"]
+        self.p = pr_output["precision"]
+        return f1_from_pr(self.p,self.r)
+
+    def _reformat_segments(self,segments):
+        segments = self._include_end_of_segments(segments)
+        segments = self._tuplify_segments(segments)
+        return segments
+
+    def _include_end_of_segments(self, segments):
+        return [[start,end+1] for start,end in segments]
+
+    def _tuplify_segments(self,segments):
+        return [tuple(segment) for segment in segments]
 
 
 class Range_PR(Redefined_PR_metric):
