@@ -1,8 +1,10 @@
 import numpy as np
 from dataclasses import dataclass
+from sklearn.metrics import roc_auc_score, average_precision_score
 
 from nabscore import Sweeper
 from affiliation.metrics import pr_from_events as affiliation_pr
+from prts import ts_recall, ts_precision
 
 
 
@@ -236,7 +238,36 @@ class Affiliation(Redefined_PR_metric):
 
 
 class Range_PR(Redefined_PR_metric):
-    pass
+    def __init__(self, *args, alpha = 0.2, bias = "flat"):
+        super().__init__(*args)
+        self.alpha = alpha
+        self.bias = bias
+        self.set_name()
+
+    def set_name(self):
+        self.name = f"RF$_{{{self.bias}}}^{{\\alpha={self.alpha}}}$"
+
+    def set_kwargs(self):
+        real = np.zeros(self._length)
+        real[self.get_gt_anomalies_ptwise()] = 1
+        pred = np.zeros(self._length)
+        pred[self.get_predicted_anomalies_ptwise()] = 1
+
+        self.kwargs = {"real":real, 
+                       "pred":pred, 
+                       "alpha":self.alpha,
+                       "cardinality":"one", 
+                       "bias":self.bias
+                       }
+
+
+    def recall(self):
+        self.set_kwargs()
+        return ts_recall(**self.kwargs)
+
+    def precision(self):
+        self.set_kwargs()
+        return ts_precision(**self.kwargs)
 
 
 class TS_aware(Redefined_PR_metric):
@@ -284,3 +315,88 @@ class NAB_score(Detected_anomalies):
         assert scoresByThreshold[1].threshold == 1.0
 
         return scoresByThreshold
+
+
+class Threshold_independent_method(Detected_anomalies):
+    def __init__(self, *args):
+        super().__init__(*args)
+        self.rng = np.random.default_rng()
+
+    def get_score(self):
+        number_of_runs = 1000
+        scores = np.zeros(number_of_runs)
+        for run in range(number_of_runs):
+            anomaly_score = self.get_random_anomaly_score()
+            scores[run] = self.get_score_given_anomaly_score(anomaly_score)
+        print("mean and its std:", np.mean(scores), np.std(scores, ddof = 1)/np.sqrt(number_of_runs))
+        return(np.mean(scores))
+
+    def get_random_anomaly_score(self):
+        anomaly_score = np.zeros(self._length)
+        anomaly_score[self.get_predicted_anomalies_ptwise()] = 1
+        anomaly_score += self.rng.uniform(size=self._length)
+        return anomaly_score
+
+    def get_score_given_anomaly_score(self, anomaly_score):
+        raise NotImplementedError
+
+class Best_threshold_pw(Threshold_independent_method):
+    def __init__(self, *args):
+        self.name = "pw_best"
+        super().__init__(*args)
+
+    def get_score_given_anomaly_score(self, anomaly_score):
+        scores = []
+        for current_anomaly_score in anomaly_score:
+            scores.append(self.get_score_given_anomaly_score_and_threshold(anomaly_score, threshold = current_anomaly_score))
+        return np.nanmax(scores)
+
+    def get_score_given_anomaly_score_and_threshold(self, anomaly_score, threshold):
+        gt = np.zeros(self._length)
+        gt[self.get_gt_anomalies_ptwise()] = 1
+
+        pred = np.array(anomaly_score) >= threshold
+
+        return f1_score(tp=pred@gt, fn=(1-pred)@gt, fp=(1-gt)@pred)
+
+
+
+class AUC_ROC(Threshold_independent_method):
+    def __init__(self, *args):
+        self.name = "AUC-ROC"
+        super().__init__(*args)
+
+    def get_score_given_anomaly_score(self, anomaly_score):
+        gt = np.zeros(self._length)
+        gt[self.get_gt_anomalies_ptwise()] = 1
+        return roc_auc_score(gt, anomaly_score)
+
+class AUC_PR_pw(Threshold_independent_method):
+    def __init__(self, *args):
+        self.name = "AUC-PR"
+        super().__init__(*args)
+
+    def get_score_given_anomaly_score(self, anomaly_score):
+        gt = np.zeros(self._length)
+        gt[self.get_gt_anomalies_ptwise()] = 1
+        return average_precision_score(gt, anomaly_score)
+
+class PatK_pw(Threshold_independent_method):
+    def __init__(self, *args):
+        super().__init__(*args)
+        self.name = f"P@{len(self.get_gt_anomalies_ptwise())}"
+        print(self.name)
+        print(self.get_gt_anomalies_ptwise())
+        print(args)
+
+    def get_score_given_anomaly_score(self, anomaly_score):
+        gt = np.zeros(self._length)
+        gt[self.get_gt_anomalies_ptwise()] = 1
+
+        k = int(sum(gt))
+        threshold = np.sort(anomaly_score)[-k]
+
+        pred = anomaly_score >= threshold
+        assert sum(pred) == k
+
+        return pred @ gt / k
