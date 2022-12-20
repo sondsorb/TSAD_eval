@@ -65,7 +65,7 @@ class Table:
         self.add_fig(self.rows_added + 1)
 
         for i, entry in enumerate(self.content.results[self.rows_added]):
-            self.add_entry(entry, bold = self.is_max(entry,i))
+            self.add_entry(entry, bold=self.is_max(entry, i))
         self.end_row()
 
         self.rows_added += 1
@@ -82,9 +82,9 @@ class Table:
             self.string += f"&\\textbf{{{entry}}}"
         else:
             self.string += f"&{entry}"
-                           
+
     def is_max(self, entry, i):
-            return entry == max(np.array(self.content.results)[:,i])
+        return entry == max(np.array(self.content.results)[:, i])
 
     def end_row(self):
         self.add_line("\\\\")
@@ -111,7 +111,9 @@ def create_table(anomalies, metric_list, length, name=None, scale=None):
     ]
 
     figure_contents = make_figure_content(length, anomalies)
-    table_content = Table_content(figure_contents, [metric(length, anomalies[0], []).name for metric in metric_list], results)
+    table_content = Table_content(
+        figure_contents, [metric(length, anomalies[0], []).name for metric in metric_list], results
+    )
 
     table = Table(table_content, name, scale)
     table.write()
@@ -132,6 +134,7 @@ def make_figure_content(
 ## Example problems ##
 ######################
 
+
 def PA_problem():
     anomalies = [[[25, 39]], [12, 36]]
     metric_list = [metrics.Pointwise_metrics, metrics.PointAdjust]
@@ -142,81 +145,124 @@ def PA_problem():
 
 
 def late_early_prediction():
-
     class Range_PR_front(metrics.Range_PR):
         def __init__(self, *args):
             super().__init__(*args, bias="front", alpha=0)
-    #anomalies = [[[5, 9], [15, 19]], [8,9], [7,8], [6,7], [5,6], [8,9,18,19],[7,8,17,18],[6,7,16,17], [5,6,15,16]]
-    anomalies = [[[5, 9], [15, 19]], [9], [7], [5], [9,19],[7,17], [5,15]]
-    metric_list = [metrics.PointAdjust, Range_PR_front,  metrics.NAB_score]
+
+    # anomalies = [[[5, 9], [15, 19]], [8,9], [7,8], [6,7], [5,6], [8,9,18,19],[7,8,17,18],[6,7,16,17], [5,6,15,16]]
+    anomalies = [[[5, 9], [15, 19]], [9], [7], [5], [9, 19], [7, 17], [5, 15]]
+    metric_list = [metrics.PointAdjust, Range_PR_front, metrics.NAB_score]
     length = 22
 
     create_table(anomalies, metric_list, length, scale=2)
 
+
 def length_problem_1():
 
-    #anomalies = [[[5,6], [15, 19]], [15,16,17,18,19], [5,6,15,16]]
-    anomalies = [[[3,4], [11,12], [19, 23]], [[19,23]], [3,4,11,12]]
-    metric_list = [metrics.Pointwise_metrics, metrics.PointAdjust, metrics.Segmentwise_metrics, metrics.Composite_f, metrics.Range_PR, metrics.NAB_score, metrics.Affiliation]
+    # anomalies = [[[5,6], [15, 19]], [15,16,17,18,19], [5,6,15,16]]
+    anomalies = [[[3, 4], [11, 12], [19, 23]], [[19, 23]], [3, 4, 11, 12]]
+    metric_list = [
+        metrics.Pointwise_metrics,
+        metrics.PointAdjust,
+        metrics.Segmentwise_metrics,
+        metrics.Composite_f,
+        metrics.Range_PR,
+        metrics.NAB_score,
+        metrics.Affiliation,
+    ]
     length = 24
 
     create_table(anomalies, metric_list, length, scale=2)
 
+
 def length_problem_2():
 
-    anomalies = [[2,4,6,15,16,17,18,19], [2,3,4,5,6], [2,15,16,17,18,19]]
-    metric_list = [metrics.Pointwise_metrics, metrics.PointAdjust, metrics.Segmentwise_metrics, metrics.Composite_f, metrics.Range_PR, metrics.Affiliation]#, metrics.NAB_score]
+    anomalies = [[2, 4, 6, 15, 16, 17, 18, 19], [2, 3, 4, 5, 6], [2, 15, 16, 17, 18, 19]]
+    metric_list = [
+        metrics.Pointwise_metrics,
+        metrics.PointAdjust,
+        metrics.Segmentwise_metrics,
+        metrics.Composite_f,
+        metrics.Range_PR,
+        metrics.Affiliation,
+    ]  # , metrics.NAB_score]
     length = 22
 
     create_table(anomalies, metric_list, length, scale=2)
 
+
 def short_predictions():
 
-    anomalies = [[ [14, 20]], [3,16], [2,3,4,5,6,7,15,16,17,18,19,20]]
-    metric_list = [metrics.Pointwise_metrics, metrics.PointAdjust, metrics.Segmentwise_metrics, metrics.Composite_f, metrics.Range_PR, metrics.NAB_score, metrics.Affiliation]
+    anomalies = [[[14, 20]], [3, 16], [2, 3, 4, 5, 6, 7, 15, 16, 17, 18, 19, 20]]
+    metric_list = [
+        metrics.Pointwise_metrics,
+        metrics.PointAdjust,
+        metrics.Segmentwise_metrics,
+        metrics.Composite_f,
+        metrics.Range_PR,
+        metrics.NAB_score,
+        metrics.Affiliation,
+    ]
     length = 22
 
     create_table(anomalies, metric_list, length, scale=2)
 
 
 def detection_over_covering():
-    anomalies = [[[5,12], [20,27]], [[5,12]], [5,20]]#, [[5,12],[20,27]]
-    metric_list = [metrics.Pointwise_metrics, metrics.PointAdjust, metrics.Segmentwise_metrics, metrics.Composite_f, metrics.Range_PR, metrics.NAB_score, metrics.Affiliation]
+    anomalies = [[[5, 12], [20, 27]], [[5, 12]], [5, 20]]  # , [[5,12],[20,27]]
+    metric_list = [
+        metrics.Pointwise_metrics,
+        metrics.PointAdjust,
+        metrics.Segmentwise_metrics,
+        metrics.Composite_f,
+        metrics.Range_PR,
+        metrics.NAB_score,
+        metrics.Affiliation,
+    ]
     length = 28
 
     create_table(anomalies, metric_list, length, scale=2)
 
+
 def close_fp():
-    anomalies = [[12,13,14,15],[7,8],[8,9],[9,10],[10,11]]
+    anomalies = [[12, 13, 14, 15], [7, 8], [8, 9], [9, 10], [10, 11]]
     metric_list = [
-            #metrics.Pointwise_metrics, metrics.PointAdjust, metrics.Segmentwise_metrics, metrics.Composite_f, metrics.NAB_score, 
-            metrics.Affiliation]
+        # metrics.Pointwise_metrics, metrics.PointAdjust, metrics.Segmentwise_metrics, metrics.Composite_f, metrics.NAB_score,
+        metrics.Affiliation
+    ]
     length = 17
 
     create_table(anomalies, metric_list, length, scale=2)
 
+
 def concise():
-    anomalies = [[4,5,7,8,10,12], [4,5,7,8,10], [[3,15]]]
+    anomalies = [[4, 5, 7, 8, 10, 12], [4, 5, 7, 8, 10], [[3, 15]]]
     metric_list = [
-            metrics.Pointwise_metrics, metrics.PointAdjust, metrics.Segmentwise_metrics, metrics.Composite_f, #metrics.NAB_score,
-            metrics.Range_PR,
-            metrics.Affiliation]
+        metrics.Pointwise_metrics,
+        metrics.PointAdjust,
+        metrics.Segmentwise_metrics,
+        metrics.Composite_f,  # metrics.NAB_score,
+        metrics.Range_PR,
+        metrics.Affiliation,
+    ]
     length = 17
 
     create_table(anomalies, metric_list, length, scale=2)
 
 
 def af_problem():
-    anomalies = [[29,30,35,36], [25,26,35,36],[29,30,34,35]]
+    anomalies = [[29, 30, 35, 36], [25, 26, 35, 36], [29, 30, 34, 35]]
     metric_list = [
-            #metrics.Pointwise_metrics, metrics.PointAdjust, metrics.Segmentwise_metrics, metrics.Composite_f, metrics.NAB_score,
-            #metrics.Range_PR,
-            metrics.Affiliation]
+        # metrics.Pointwise_metrics, metrics.PointAdjust, metrics.Segmentwise_metrics, metrics.Composite_f, metrics.NAB_score,
+        # metrics.Range_PR,
+        metrics.Affiliation
+    ]
     length = 38
 
     create_table(anomalies, metric_list, length, scale=2)
 
-#def labelling_problem():
+
+# def labelling_problem():
 #    anomalies = [[[6,7],[30,39]], [[15,16],[30,33]],[6,7,30,40], [[6,7],[15,16],[30,39]]]
 #    metric_list = [
 #            metrics.Pointwise_metrics, metrics.PointAdjust, metrics.Segmentwise_metrics, metrics.Composite_f, #metrics.NAB_score,
@@ -230,63 +276,135 @@ def af_problem():
 #
 #    create_table(anomalies, metric_list, length, scale=2)
 
+
 def labelling_problem():
-    anomalies = [[[18,23]], [18,24]]
+    anomalies = [[[18, 23]], [18, 24]]
     metric_list = [
-            metrics.Pointwise_metrics, metrics.PointAdjust, metrics.Segmentwise_metrics, metrics.Composite_f, #metrics.NAB_score,
-            metrics.Range_PR,
-            metrics.Affiliation]
+        metrics.Pointwise_metrics,
+        metrics.PointAdjust,
+        metrics.Segmentwise_metrics,
+        metrics.Composite_f,  # metrics.NAB_score,
+        metrics.Range_PR,
+        metrics.Affiliation,
+    ]
     length = 30
 
     create_table(anomalies, metric_list, length, scale=2)
 
-    anomalies = [[18,24],[[18,23]]]
+    anomalies = [[18, 24], [[18, 23]]]
 
     create_table(anomalies, metric_list, length, scale=2)
+
+
+##############################################
+# methods including thresholding strategires #
+##############################################
+
+
+class Nonbinary_Table(Table):
+    def __init__(self, anomaly_scores, *args):
+        self.anomaly_scores = anomaly_scores
+        super().__init__(*args)
+        self.x_factor = 1 / 10
+        self.y_factor = 1 / 5 * 2 / self.scale
+
+    def add_fig(self, number):
+        if number > 0:
+            self.add_anomaly_score_fig(number)
+        else:
+            figure = Figure(self.content.figure_contents[number], scale=self.scale)
+            figure.make()
+            self.string += figure.string
+
+    def add_anomaly_score_fig(self, number):
+        self.add_line(
+            f"\\begin{{tikzpicture}}[scale={self.scale}, baseline=-\\the\\dimexpr\\fontdimen22\\textfont2\\relax]"
+        )
+        self.add_line("\\foreach \\i/\\a in")
+        self.add_line(
+            str([(i * self.x_factor, a * self.y_factor) for i, a in enumerate(self.anomaly_scores[number - 1])])
+            .replace(",", "/")
+            .replace(")/", ",")
+            .replace("(", "")
+            .replace("[", "{")
+            .replace("]", "}")
+            .replace(")}", "}{")
+        )
+        self.add_line("\\coordinate (now) at (\\i,\\a) {};")
+        self.add_line("  \\ifthenelse{\\equal{\\i}{0.0}}{}{")
+        self.add_line("  \\draw[-, blue] (prev) -- (now);")
+        self.add_line("  }")
+        self.add_line("  \\coordinate (prev) at (\\i,\\a) {};")
+        self.add_line("}")
+        self.add_line("\\end{tikzpicture}")
 
 
 def threshold_test():
     metric_list = [
-            metrics.AUC_ROC,
-            metrics.AUC_PR_pw,
-            metrics.PatK_pw,
-            metrics.Best_threshold_pw,
-            ]
+        metrics.AUC_ROC,
+        metrics.AUC_PR_pw,
+        metrics.PatK_pw,
+        metrics.Best_threshold_pw,
+    ]
 
-    #anomalies = [[[3,4], [11,12], [19, 23]], [[19,23]], [3,4,11,12]]
-    #length = 24
-    #create_table(anomalies, metric_list, length, scale=2)
+    # anomalies = [[[3,4], [11,12], [19, 25]], [[19,25]], [3,4,11,12]]
+    # length = 27
+    # create_nonbinary_table(anomalies, metric_list, length, scale=2)
 
-    #anomalies = [[ [14, 20]], [3,16], [2,3,4,5,6,7,15,16,17,18,19,20]]
-    #length = 22
-    #create_table(anomalies, metric_list, length, scale=2)
+    # anomalies = [[ [14, 20]], [3,16], [2,3,4,5,6,7,15,16,17,18,19,20]]
+    # length = 22
+    # create_table(anomalies, metric_list, length, scale=2)
 
-    anomalies = [[[5,12], [20,27]], [[5,12]], [5,20]]#, [[5,12],[20,27]]
-    length = 28
-    create_table(anomalies, metric_list, length, scale=2)
+    # anomalies = [[[5,12], [35,42]], [[5,12]], [5,35]]#, [[5,12],[20,27]]
+    # length = 45
+    # create_nonbinary_table(anomalies, metric_list, length, scale=1.5)
 
-    #anomalies = [[4,5,7,8,10,12], [4,5,7,8,10], [[3,15]]]
-    #length = 100
-    #create_table(anomalies, metric_list, length, scale=2)
+    # anomalies = [[14,15,16], [14,15], [[12,20]]]
+    # length = 45
+    # create_nonbinary_table(anomalies, metric_list, length, scale=1.5)
 
-    #anomalies = [[[18,23]], [18,24]]
-    #length = 30
-    #create_table(anomalies, metric_list, length, scale=2)
+    anomalies = [[[18, 23]], [18, 24]]
+    length = 30
+    create_nonbinary_table(anomalies, metric_list, length, scale=2)
 
-    #anomalies = [[18,24],[[18,23]]]
-    #create_table(anomalies, metric_list, length, scale=2)
+    anomalies = [[18, 24], [[18, 23]]]
+    create_nonbinary_table(anomalies, metric_list, length, scale=2)
+
+
+def create_nonbinary_table(anomalies, metric_list, length, name=None, scale=None):
+    results = []
+    for predicted_anomalies in anomalies[1:]:
+        results_this_line = []
+        for metric in metric_list:
+            this_metric = metric(length, anomalies[0], predicted_anomalies)
+            results_this_line.append(this_metric.get_score())
+        results.append(results_this_line)
+
+    figure_contents = make_figure_content(length, anomalies)
+    table_content = Table_content(
+        figure_contents, [metric(length, anomalies[0], []).name for metric in metric_list], results
+    )
+
+    anomaly_scores = [
+        metrics.Threshold_independent_method(length, anomalies[0], predicted_anomalies).get_random_anomaly_score()
+        for predicted_anomalies in anomalies[1:]
+    ]
+
+    table = Nonbinary_Table(anomaly_scores, table_content, name, scale)
+    table.write()
+    print(table)
 
 
 if __name__ == "__main__":
-    #PA_problem()
-    #late_early_prediction()
-    #length_problem_1()
-    #length_problem_2()
-    #short_predictions()
-    #detection_over_covering()
-    #close_fp()
-    #concise()
-    #af_problem()
-    #labelling_problem()
+    # PA_problem()
+    # late_early_prediction()
+    # length_problem_1()
+    # length_problem_2()
+    # short_predictions()
+    # detection_over_covering()
+    # close_fp()
+    # concise()
+    # af_problem()
+    # labelling_problem()
 
     threshold_test()

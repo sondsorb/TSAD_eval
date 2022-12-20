@@ -79,13 +79,13 @@ class Figure:
 
     def add_row_anomalies(self):
         for start, stop in self.content.anomalies[self.rows_added]:
-            self.add_for_loop(start, stop+1, self.point_step_length)
+            self.add_for_loop(start, stop + 1, self.point_step_length)
             self.add_circles(self.anomaly_color)
 
     def add_for_loop(self, start, end, step):
         if end - start > 1.001:
             self.add_line(
-                f"\\foreach \\i in {{{round(start*step,2)}, {round(start*step+step,2)},..., {round(end*step-0.01,2)}}}" # -0.01 to make sure last step is excluded
+                f"\\foreach \\i in {{{round(start*step,2)}, {round(start*step+step,2)},..., {round(end*step-0.01,2)}}}"  # -0.01 to make sure last step is excluded
             )
         else:
             self.add_line(f"\\foreach \\i in {{{round(start*step,2)}}}")
