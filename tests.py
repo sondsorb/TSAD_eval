@@ -3,33 +3,33 @@ from metrics import *
 import unittest
 
 
-class Detected_anomalies_tester(unittest.TestCase):
+class Binary_detection_tester(unittest.TestCase):
     def test_unsorted(self):
-        self.assertRaises(AssertionError, Detected_anomalies, 10, [2, 3, 4], [3, 4, 2])
-        self.assertRaises(AssertionError, Detected_anomalies, 10, [3, 4, 2], [2, 3, 4])
-        self.assertRaises(AssertionError, Detected_anomalies, 10, [[1, 8]], [[5, 6], [1, 2]])
-        self.assertRaises(AssertionError, Detected_anomalies, 10, [[5, 6], [1, 2]], [[1, 8]])
+        self.assertRaises(AssertionError, Binary_detection, 10, [2, 3, 4], [3, 4, 2])
+        self.assertRaises(AssertionError, Binary_detection, 10, [3, 4, 2], [2, 3, 4])
+        self.assertRaises(AssertionError, Binary_detection, 10, [[1, 8]], [[5, 6], [1, 2]])
+        self.assertRaises(AssertionError, Binary_detection, 10, [[5, 6], [1, 2]], [[1, 8]])
 
     def test_nonunique(self):
-        self.assertRaises(AssertionError, Detected_anomalies, 10, [2, 4, 4], [2, 3, 4])
-        self.assertRaises(AssertionError, Detected_anomalies, 10, [2, 3, 4], [2, 4, 4])
+        self.assertRaises(AssertionError, Binary_detection, 10, [2, 4, 4], [2, 3, 4])
+        self.assertRaises(AssertionError, Binary_detection, 10, [2, 3, 4], [2, 4, 4])
 
     def test_long_anom(self):
-        self.assertRaises(AssertionError, Detected_anomalies, 4, [1], [2, 3, 4])
-        self.assertRaises(AssertionError, Detected_anomalies, 4, [[2, 4]], [1])
-        self.assertRaises(AssertionError, Detected_anomalies, 4, [-1], [1])
+        self.assertRaises(AssertionError, Binary_detection, 4, [1], [2, 3, 4])
+        self.assertRaises(AssertionError, Binary_detection, 4, [[2, 4]], [1])
+        self.assertRaises(AssertionError, Binary_detection, 4, [-1], [1])
 
     def test_point_to_seq(self):
         anom1 = [3, 4, 5, 7, 8, 11]
         anom2 = [[3, 5], [7, 8], [11, 11]]
-        d = Detected_anomalies(12, anom1, anom2)
+        d = Binary_detection(12, anom1, anom2)
 
         self.assertTrue(np.array_equal(np.array(anom1), d.get_predicted_anomalies_ptwise()))
         self.assertTrue(np.array_equal(np.array(anom2), d.get_gt_anomalies_segmentwise()))
 
     def test_anomaly_binary_form(self):
         anom1 = [3, 4, 5, 7, 8, 11]
-        d = Detected_anomalies(12, anom1, anom1)
+        d = Binary_detection(12, anom1, anom1)
 
         self.assertTrue(np.array_equal(d.get_gt_anomalies_binary(), np.array([0, 0, 0, 1, 1, 1, 0, 1, 1, 0, 0, 1])))
         self.assertTrue(
@@ -40,7 +40,7 @@ class Detected_anomalies_tester(unittest.TestCase):
         anom1 = [3, 4, 5, 7, 8]
         anom2 = []
 
-        d = Detected_anomalies(12, anom1, anom2)
+        d = Binary_detection(12, anom1, anom2)
         self.assertEqual(0, len(d.get_predicted_anomalies_ptwise()))
         self.assertEqual(0, len(d.get_predicted_anomalies_segmentwise()))
 
@@ -144,86 +144,88 @@ class Metrics_tester(unittest.TestCase):
 
 
 class Threshold_metric_tester(unittest.TestCase):
-    def setUp(self):
-        length = 4
-        gt = [[2, 3]]
-        base_prediction = [[2, 3]]
-        self.args = (length, gt, base_prediction)
 
     #    def test_roc(self):
     #        a = aucroc(true = [0,0,1,1], score = [0.1,0.4,0.35,0.8])
     def test_auc_pr(self):
-        auc_pr = AUC_PR_pw(*self.args)
-
+        gt = [[2, 3]]
         anomaly_score = [1, 3, 2, 4]
-        score = auc_pr.get_score_given_anomaly_score(anomaly_score)
+        auc_pr = AUC_PR_pw(gt, anomaly_score)
+
+        score = auc_pr.get_score()
         self.assertAlmostEqual(score, 0.83, 2)
 
         anomaly_score = [1, 2, 3, 4]
-        score = auc_pr.get_score_given_anomaly_score(anomaly_score)
+        auc_pr = AUC_PR_pw(gt, anomaly_score)
+        score = auc_pr.get_score()
         self.assertEqual(score, 1)
 
         anomaly_score = [4, 3, 1, 1]
-        score = auc_pr.get_score_given_anomaly_score(anomaly_score)
+        auc_pr = AUC_PR_pw(gt, anomaly_score)
+        score = auc_pr.get_score()
         self.assertEqual(score, 0.5)
 
     def test_auc_roc(self):
-        auc_roc = AUC_ROC(*self.args)
+        gt = [[2, 3]]
 
         anomaly_score = [1, 3, 2, 4]
-        score = auc_roc.get_score_given_anomaly_score(anomaly_score)
+        auc_roc = AUC_ROC(gt, anomaly_score)
+        score = auc_roc.get_score()
         self.assertAlmostEqual(score, 0.75, 2)
 
         anomaly_score = [1, 2, 3, 4]
-        score = auc_roc.get_score_given_anomaly_score(anomaly_score)
+        auc_roc = AUC_ROC(gt, anomaly_score)
+        score = auc_roc.get_score()
         self.assertEqual(score, 1)
 
         anomaly_score = [4, 4, 4, 4]
-        score = auc_roc.get_score_given_anomaly_score(anomaly_score)
+        auc_roc = AUC_ROC(gt, anomaly_score)
+        score = auc_roc.get_score()
         self.assertEqual(score, 0.5)
 
     def test_PatK(self):
-        patk = PatK_pw(*self.args)
+        gt = [[2, 3]]
 
         anomaly_score = [1, 4, 2, 3]
-        score = patk.get_score_given_anomaly_score(anomaly_score)
+        patk = PatK_pw(gt, anomaly_score)
+        score = patk.get_score()
         self.assertEqual(score, 0.5)
 
         anomaly_score = [1, 2, 3, 4]
-        score = patk.get_score_given_anomaly_score(anomaly_score)
-        self.assertEqual(score, 1)
-
-        anomaly_score = [3, 4, 1, 2]
-        score = patk.get_score_given_anomaly_score(anomaly_score)
-        self.assertEqual(score, 0)
-
-        patk = PatK_pw(4, [1, 2, 3], [3])
-        anomaly_score = [3, 4, 1, 2]
-        score = patk.get_score_given_anomaly_score(anomaly_score)
-        self.assertAlmostEqual(score, 2 / 3)
-
-        patk = PatK_pw(4, [], [3])
-        self.assertRaises(AssertionError, patk.get_score)
-
-    def test_Threshold_independent_method(self):
-        patk = PatK_pw(*self.args)
-
+        patk = PatK_pw(gt, anomaly_score)
         score = patk.get_score()
         self.assertEqual(score, 1)
 
+        anomaly_score = [3, 4, 1, 2]
+        patk = PatK_pw(gt, anomaly_score)
+        score = patk.get_score()
+        self.assertEqual(score, 0)
+
+        anomaly_score = [3, 4, 1, 2]
+        patk = PatK_pw([1, 2, 3], anomaly_score)
+        score = patk.get_score()
+        self.assertAlmostEqual(score, 2 / 3)
+
+        patk = PatK_pw([], [0,1,2,4])
+        self.assertRaises(AssertionError, patk.get_score)
+
+
     def test_best_threshold_pw(self):
-        metric = Best_threshold_pw(*self.args)
+        gt = [[2, 3]]
 
         anomaly_score = [1, 3, 2, 4]
-        score = metric.get_score_given_anomaly_score(anomaly_score)
+        metric = Best_threshold_pw(gt, anomaly_score)
+        score = metric.get_score()
         self.assertAlmostEqual(score, 2 * 2 / 3 * 1 / (1 + 2 / 3))
 
         anomaly_score = [2, 3, 1, 4]
-        score = metric.get_score_given_anomaly_score(anomaly_score)
+        metric = Best_threshold_pw(gt, anomaly_score)
+        score = metric.get_score()
         self.assertAlmostEqual(score, 2 * 1 / 2 * 1 / (1 + 1 / 2))
 
         anomaly_score = [4, 3, 1, 2]
-        score = metric.get_score_given_anomaly_score(anomaly_score)
+        metric = Best_threshold_pw(gt, anomaly_score)
+        score = metric.get_score()
         self.assertAlmostEqual(score, 2 * 1 / 2 * 1 / (1 + 1 / 2))
 
 

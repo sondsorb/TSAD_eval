@@ -31,18 +31,16 @@ def segmentwise_to_pointwise(segmentwise):
 
     return np.array(pointwise)
 
+def pointwise_to_binary(pointwise, length):
+    anomalies_binary = np.zeros(length)
+    if len(pointwise) > 0:
+        anomalies_binary[pointwise] = 1
+    return anomalies_binary
 
-class Detected_anomalies:
-    def __init__(self, length, gt_anomalies, predicted_anomalies):
+class Binary_anomalies:
+    def __init__(self, length, anomalies):
         self._length = length
-        self._set_gt_anomalies(gt_anomalies)
-        self._set_predicted_anomalies(predicted_anomalies)
-
-    def _set_gt_anomalies(self, anomalies):
-        self._gt_anomalies_segmentwise, self._gt_anomalies_ptwise = self._set_anomalies(anomalies)
-
-    def _set_predicted_anomalies(self, anomalies):
-        self._predicted_anomalies_segmentwise, self._predicted_anomalies_ptwise = self._set_anomalies(anomalies)
+        self._set_anomalies(anomalies)
 
     def _set_anomalies(self, anomalies):
         anomalies = np.array(anomalies)
@@ -56,39 +54,48 @@ class Detected_anomalies:
             raise ValueError(f"Illegal shape of anomalies:\n{anomalies}")
 
         if len(anomalies_ptwise) > 0:
+            assert anomalies_ptwise[-1] < self._length
+        anomalies_binary=pointwise_to_binary(anomalies_ptwise, self._length)
+
+        if len(anomalies_ptwise) > 0:
             assert all(anomalies_ptwise == np.sort(anomalies_ptwise))
             assert anomalies_ptwise[0] >= 0
-            assert anomalies_ptwise[-1] < self._length
             assert len(anomalies_ptwise) == len(np.unique(anomalies_ptwise))
+            assert len(anomalies_ptwise) == sum(anomalies_binary)
 
             assert all(anomalies_segmentwise[:, 0] == np.sort(anomalies_segmentwise[:, 0]))
             assert all(anomalies_segmentwise[:, 1] >= anomalies_segmentwise[:, 0])
 
-        return anomalies_segmentwise, anomalies_ptwise
+        self.anomalies_segmentwise=anomalies_segmentwise
+        self.anomalies_ptwise=anomalies_ptwise
+        self.anomalies_binary=anomalies_binary
+
+class Binary_detection:
+    def __init__(self, length, gt_anomalies, predicted_anomalies):
+        self._length = length
+        self._gt = Binary_anomalies(length,gt_anomalies)
+        self._prediction = Binary_anomalies(length,predicted_anomalies)
+
+    def get_length(self):
+        return self._length
 
     def get_gt_anomalies_ptwise(self):
-        return self._gt_anomalies_ptwise
+        return self._gt.anomalies_ptwise
 
     def get_gt_anomalies_segmentwise(self):
-        return self._gt_anomalies_segmentwise
+        return self._gt.anomalies_segmentwise
 
     def get_predicted_anomalies_ptwise(self):
-        return self._predicted_anomalies_ptwise
+        return self._prediction.anomalies_ptwise
 
     def get_predicted_anomalies_segmentwise(self):
-        return self._predicted_anomalies_segmentwise
+        return self._prediction.anomalies_segmentwise
 
     def get_predicted_anomalies_binary(self):
-        return self.get_anomalies_binary(self.get_predicted_anomalies_ptwise())
+        return self._prediction.anomalies_binary
 
     def get_gt_anomalies_binary(self):
-        return self.get_anomalies_binary(self.get_gt_anomalies_ptwise())
-
-    def get_anomalies_binary(self, anomalies_ptwise):
-        anomalies_binary = np.zeros(self._length)
-        if len(anomalies_ptwise) > 0:
-            anomalies_binary[anomalies_ptwise] = 1
-        return anomalies_binary
+        return self._gt.anomalies_binary
 
 
 def f1_from_pr(p, r):
@@ -112,7 +119,7 @@ def precision(*args, tp, fp):
     return tp / (tp + fp)
 
 
-class original_PR_metric(Detected_anomalies):
+class original_PR_metric(Binary_detection):
     # def __init__(self, *args):
     #    super().__init__(*args)
     def get_score(self):
@@ -126,11 +133,11 @@ class Pointwise_metrics(original_PR_metric):
         self.set_confusion()
 
     def set_confusion(self):
-        gt = np.zeros(self._length)
+        gt = np.zeros(self.get_length())
         if len(self.get_gt_anomalies_ptwise()) > 0:
             gt[self.get_gt_anomalies_ptwise()] = 1
 
-        pred = np.zeros(self._length)
+        pred = np.zeros(self.get_length())
         if len(self.get_predicted_anomalies_ptwise()) > 0:
             pred[self.get_predicted_anomalies_ptwise()] = 1
 
@@ -156,7 +163,7 @@ class PointAdjust(Pointwise_metrics):
                         adjusted_prediction.append(j)
                     break
 
-        self._set_predicted_anomalies(np.sort(np.unique(adjusted_prediction)))
+        self._prediction._set_anomalies(np.sort(np.unique(adjusted_prediction)))
 
 
 class Segmentwise_metrics(original_PR_metric):
@@ -195,7 +202,7 @@ class Segmentwise_metrics(original_PR_metric):
         return not (anomaly1[1] < anomaly2[0] or anomaly2[1] < anomaly1[0])
 
 
-class Redefined_PR_metric(Detected_anomalies):
+class Redefined_PR_metric(Binary_detection):
     def __init__(self, *args):
         super().__init__(*args)
 
@@ -235,7 +242,7 @@ class Affiliation(Redefined_PR_metric):
         pr_output = affiliation_pr(
             self._reformat_segments(self.get_predicted_anomalies_segmentwise()),
             self._reformat_segments(self.get_gt_anomalies_segmentwise()),
-            (0, self._length),
+            (0, self.get_length()),
         )
         self.r = pr_output["recall"]
         self.p = pr_output["precision"]
@@ -264,9 +271,9 @@ class Range_PR(Redefined_PR_metric):
         self.name = f"RF$_{{{self.bias}}}^{{\\alpha={self.alpha}}}$"
 
     def set_kwargs(self):
-        real = np.zeros(self._length)
+        real = np.zeros(self.get_length())
         real[self.get_gt_anomalies_ptwise()] = 1
-        pred = np.zeros(self._length)
+        pred = np.zeros(self.get_length())
         pred[self.get_predicted_anomalies_ptwise()] = 1
 
         self.kwargs = {"real": real, "pred": pred, "alpha": self.alpha, "cardinality": "one", "bias": self.bias}
@@ -288,7 +295,7 @@ class Enhanced_TS_aware(Redefined_PR_metric):
     pass
 
 
-class NAB_score(Detected_anomalies):
+class NAB_score(Binary_detection):
     def __init__(self, *args):
         self.name = "NAB/100"
         super().__init__(*args)
@@ -313,8 +320,8 @@ class NAB_score(Detected_anomalies):
         return (raw_score - null_score) / (perfect_score - null_score)
 
     def get_scoresByThreshold(self, prediction):
-        anomaly_scores = self.get_anomalies_binary(prediction)
-        timestamps = np.arange(self._length)
+        anomaly_scores = pointwise_to_binary(prediction, self.get_length())
+        timestamps = np.arange(self.get_length())
         windowLimits = self.get_gt_anomalies_segmentwise()
         dataSetName = "dummyname"
         anomalyList = self.sweeper.calcSweepScore(timestamps, anomaly_scores, windowLimits, dataSetName)
@@ -326,90 +333,79 @@ class NAB_score(Detected_anomalies):
         return scoresByThreshold
 
 
-rng = np.random.default_rng()
-RANDOM_TS = rng.uniform(0, 0.5, 99999)
+
+class Nonbinary_detection:
+    def __init__(self, gt_anomalies, anomaly_score):
+        self._length = len(anomaly_score)
+        self._gt = Binary_anomalies(self._length,gt_anomalies)
+        self._anomaly_score = anomaly_score
+
+    def get_gt_anomalies_ptwise(self):
+        return self._gt.anomalies_ptwise
+
+    def get_gt_anomalies_segmentwise(self):
+        return self._gt.anomalies_segmentwise
+
+    def get_gt_anomalies_binary(self):
+        return self._gt.anomalies_binary
+
+    def get_anomaly_score(self):
+        return self._anomaly_score
 
 
-class Threshold_independent_method(Detected_anomalies):
-    def __init__(self, *args):
-        super().__init__(*args)
-
-    def get_score(self):
-        anomaly_score = self.get_random_anomaly_score()
-        # print(str([(i/10,a/5*20/8) for i,a in enumerate(anomaly_score)]).replace(",","/").replace(")/", ",").replace("(","").replace("[","{").replace("]","}").replace(")}","}{"))
-        return self.get_score_given_anomaly_score(anomaly_score)
-
-    def get_random_anomaly_score(self):
-        anomaly_score = self.get_predicted_anomalies_binary()
-        anomaly_score += self.smooth(RANDOM_TS[len(anomaly_score) * 10 : len(anomaly_score) * 11])
-        return self.smooth(anomaly_score)
-
-    def smooth(self, anomaly_score):
-        return np.convolve(
-            anomaly_score,
-            [0.25, 0.5, 0.25],
-            # [.1,0.2,0.4,0.2,.1],
-            # [.05,0.1,0.7,0.1,.05],
-            "same",
-        )
-
-    def get_score_given_anomaly_score(self, anomaly_score):
-        raise NotImplementedError
-
-
-class Best_threshold_pw(Threshold_independent_method):
+class Best_threshold_pw(Nonbinary_detection):
     def __init__(self, *args):
         self.name = "pw-best"
         super().__init__(*args)
 
-    def get_score_given_anomaly_score(self, anomaly_score):
+    def get_score(self):
         scores = []
-        for current_anomaly_score in anomaly_score:
+        for current_anomaly_score in self.get_anomaly_score():
             scores.append(
-                self.get_score_given_anomaly_score_and_threshold(anomaly_score, threshold=current_anomaly_score)
+                self.get_score_given_anomaly_score_and_threshold(threshold=current_anomaly_score)
             )
         return np.nanmax(scores)
 
-    def get_score_given_anomaly_score_and_threshold(self, anomaly_score, threshold):
+    def get_score_given_anomaly_score_and_threshold(self, threshold):
         gt = self.get_gt_anomalies_binary()
 
-        pred = np.array(anomaly_score) >= threshold
+        pred = np.array(self.get_anomaly_score()) >= threshold
 
         return f1_score(tp=pred @ gt, fn=(1 - pred) @ gt, fp=(1 - gt) @ pred)
 
 
-class AUC_ROC(Threshold_independent_method):
+class AUC_ROC(Nonbinary_detection):
     def __init__(self, *args):
         self.name = "AUC-ROC"
         super().__init__(*args)
 
-    def get_score_given_anomaly_score(self, anomaly_score):
+    def get_score(self):
         gt = self.get_gt_anomalies_binary()
-        return roc_auc_score(gt, anomaly_score)
+        return roc_auc_score(gt, self.get_anomaly_score())
 
 
-class AUC_PR_pw(Threshold_independent_method):
+class AUC_PR_pw(Nonbinary_detection):
     def __init__(self, *args):
         self.name = "AUC-PR"
         super().__init__(*args)
 
-    def get_score_given_anomaly_score(self, anomaly_score):
+    def get_score(self):
         gt = self.get_gt_anomalies_binary()
-        return average_precision_score(gt, anomaly_score)
+        return average_precision_score(gt, self.get_anomaly_score())
 
 
-class PatK_pw(Threshold_independent_method):
+class PatK_pw(Nonbinary_detection):
     def __init__(self, *args):
         super().__init__(*args)
         self.name = f"P@{len(self.get_gt_anomalies_ptwise())}"
 
-    def get_score_given_anomaly_score(self, anomaly_score):
+    def get_score(self):
         gt = self.get_gt_anomalies_binary()
 
         k = int(sum(gt))
-        threshold = np.sort(anomaly_score)[-k]
+        threshold = np.sort(self.get_anomaly_score())[-k]
 
-        pred = anomaly_score >= threshold
-        assert sum(pred) == k
+        pred = self.get_anomaly_score() >= threshold
+        assert sum(pred) == k, (k, pred)
 
         return pred @ gt / k
