@@ -152,6 +152,34 @@ class Metrics_tester(unittest.TestCase):
         self.assertAlmostEqual(t.recall(), 1/2)
         self.assertAlmostEqual(t.precision(), 1)
 
+    def test_TaF(self):
+        t = TaF(10, [4,5,6], [4,5,6])
+        self.assertEqual(t.get_score(), 1)
+
+        t = TaF(10, [4,5,6], [1,2,3])
+        self.assertEqual(t.get_score(), 0)
+
+        t = TaF(10, [4,5,6], [7,8,9])
+        self.assertTrue(t.get_score() > 0)
+
+        t1 = TaF(10, [4,5,8,9], [4,5])
+        t2 = TaF(10, [4,5,8,9], [5,8])
+        self.assertTrue(t1.get_score() < t2.get_score())
+
+    def test_eTaF(self):
+        t = eTaF(10, [4,5,6], [4,5,6])
+        self.assertEqual(t.get_score(), 1)
+
+        t = eTaF(10, [4,5,6], [1,2,3])
+        self.assertEqual(t.get_score(), 0)
+
+        t = eTaF(10, [4,5,6], [7,8,9])
+        self.assertTrue(t.get_score() == 0)
+
+        t1 = eTaF(10, [4,5,8,9], [4,5])
+        t2 = eTaF(10, [4,5,8,9], [5,8])
+        self.assertTrue(t1.get_score() < t2.get_score())
+
 class Threshold_metric_tester(unittest.TestCase):
 
     #    def test_roc(self):

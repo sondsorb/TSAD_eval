@@ -6,6 +6,7 @@ from nabscore import Sweeper
 from affiliation.metrics import pr_from_events as affiliation_pr
 from prts import ts_recall, ts_precision
 import time_tolerant as ttol
+from TaPR import TaPR as TaPR
 
 
 def pointwise_to_segmentwise(pointwise):
@@ -287,11 +288,51 @@ class Range_PR(Redefined_PR_metric):
         return ts_precision(**self.kwargs)
 
 
-class TS_aware(Redefined_PR_metric):
-    pass
+class TaF(Redefined_PR_metric):
+    def __init__(self, *args, theta=0.5, alpha=0.5, delta=2):
+        super().__init__(*args)
+        self.alpha=alpha
+        self.theta=theta
+        self.delta=delta
+        self.name = f"TaP$_{{\\theta={self.theta},\\delta={self.delta}}}^{{\\alpha={self.alpha}}}$"
+
+        self.prepare_scoring()
+
+    def prepare_scoring(self):
+        self.prepare_files()
+        label=[0,1]
+
+        self.ev = TaPR(label, self.theta, self.delta)
+        self.ev.load_anomalies(self.gt_filename)
+        self.ev.load_predictions(self.pred_filename)
+
+    def prepare_files(self):
+        self.gt_filename = "temp_gt.txt"
+        with open(self.gt_filename, "w") as f:
+            for x in self.get_gt_anomalies_binary():
+                f.write(str(int(x)))
+                f.write("\n")
+        self.pred_filename = "temp_pred.txt"
+        with open(self.pred_filename, "w") as f:
+            for x in self.get_predicted_anomalies_binary():
+                f.write(str(int(x)))
+                f.write("\n")
+
+    def recall(self):
+        tard_value, detected_list = self.ev.TaR_d()
+        tarp_value = self.ev.TaR_p()
+        return self.alpha*tard_value + (1-self.alpha)*tarp_value
+
+    def precision(self):
+        tapd_value, correct_list = self.ev.TaP_d()
+        tapp_value = self.ev.TaP_p()
+        return self.alpha*tapd_value + (1-self.alpha)*tapp_value
 
 
-class Enhanced_TS_aware(Redefined_PR_metric):
+
+
+
+class eTaF(Redefined_PR_metric):
     pass
 
 class time_tolerant(Redefined_PR_metric): # Although ttol could be considered adjusted pointwise, it is implemented as redefined precision/recall
