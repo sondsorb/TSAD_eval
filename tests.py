@@ -59,7 +59,8 @@ class Confusion_metrics_tester(unittest.TestCase):
     def test_zerodivision(self):
         self.assertRaises(ZeroDivisionError, recall, tp=0, fn=0)
         self.assertRaises(ZeroDivisionError, precision, tp=0, fp=0)
-        self.assertRaises(ZeroDivisionError, f1_score, tp=0, fp=1, fn=1)
+        #self.assertRaises(ZeroDivisionError, f1_score, tp=0, fp=1, fn=1)
+        self.assertEqual(0, f1_score(tp=0, fp=1, fn=1))
 
 
 class Metrics_tester(unittest.TestCase):
@@ -142,6 +143,14 @@ class Metrics_tester(unittest.TestCase):
         n = NAB_score(10, [[3, 6]], [1])
         self.assertAlmostEqual(n.get_score(), -1 * 0.11 / 2)
 
+    def test_ttol(self):
+        t = time_tolerant(10, [3,4,8], [1,2,3], d=2)
+        self.assertAlmostEqual(t.recall(), 2/3)
+        self.assertAlmostEqual(t.precision(), 1)
+
+        t = time_tolerant(10, [4,5], [6], d=1)
+        self.assertAlmostEqual(t.recall(), 1/2)
+        self.assertAlmostEqual(t.precision(), 1)
 
 class Threshold_metric_tester(unittest.TestCase):
 

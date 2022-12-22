@@ -5,6 +5,7 @@ from sklearn.metrics import roc_auc_score, average_precision_score
 from nabscore import Sweeper
 from affiliation.metrics import pr_from_events as affiliation_pr
 from prts import ts_recall, ts_precision
+import time_tolerant as ttol
 
 
 def pointwise_to_segmentwise(pointwise):
@@ -99,15 +100,14 @@ class Binary_detection:
 
 
 def f1_from_pr(p, r):
+    if r == 0 and p == 0:
+       return 0
     return (2 * r * p) / (r + p)
 
 
 def f1_score(*args, tp, fp, fn):
     r = recall(tp=tp, fn=fn)
     p = precision(tp=tp, fp=fp)
-
-    # if r == 0 and p == 0:
-    #    return np.nan
     return f1_from_pr(p, r)
 
 
@@ -293,6 +293,28 @@ class TS_aware(Redefined_PR_metric):
 
 class Enhanced_TS_aware(Redefined_PR_metric):
     pass
+
+class time_tolerant(Redefined_PR_metric): # Although ttol could be considered adjusted pointwise, it is implemented as redefined precision/recall
+    def __init__(self, *args, d=2):
+        super().__init__(*args)
+        self.d = d
+        self.name = f"ttol$_{d}$"
+
+    def recall(self):
+        return ttol.recall(**self.get_kwargs())
+
+    def precision(self):
+        return ttol.precision(**self.get_kwargs())
+
+    def get_kwargs(self):
+        return {
+                "A" : np.pad(self.get_predicted_anomalies_binary(),self.d), 
+                "E" : np.pad(self.get_gt_anomalies_binary(), self.d),
+                "d" : self.d
+                }
+
+
+
 
 
 class NAB_score(Binary_detection):

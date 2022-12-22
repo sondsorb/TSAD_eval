@@ -169,6 +169,7 @@ def length_problem_1():
         metrics.Range_PR,
         metrics.NAB_score,
         metrics.Affiliation,
+        metrics.time_tolerant,
     ]
     length = 24
 
@@ -185,6 +186,7 @@ def length_problem_2():
         metrics.Composite_f,
         metrics.Range_PR,
         metrics.Affiliation,
+        metrics.time_tolerant,
     ]  # , metrics.NAB_score]
     length = 22
 
@@ -202,6 +204,7 @@ def short_predictions():
         metrics.Range_PR,
         metrics.NAB_score,
         metrics.Affiliation,
+        metrics.time_tolerant,
     ]
     length = 22
 
@@ -218,6 +221,7 @@ def detection_over_covering():
         metrics.Range_PR,
         metrics.NAB_score,
         metrics.Affiliation,
+        metrics.time_tolerant,
     ]
     length = 28
 
@@ -228,7 +232,8 @@ def close_fp():
     anomalies = [[12, 13, 14, 15], [7, 8], [8, 9], [9, 10], [10, 11]]
     metric_list = [
         # metrics.Pointwise_metrics, metrics.PointAdjust, metrics.Segmentwise_metrics, metrics.Composite_f, metrics.NAB_score,
-        metrics.Affiliation
+        metrics.Affiliation,
+        metrics.time_tolerant,
     ]
     length = 17
 
@@ -244,6 +249,7 @@ def concise():
         metrics.Composite_f,  # metrics.NAB_score,
         metrics.Range_PR,
         metrics.Affiliation,
+        metrics.time_tolerant,
     ]
     length = 17
 
@@ -286,6 +292,7 @@ def labelling_problem():
         metrics.Composite_f,  # metrics.NAB_score,
         metrics.Range_PR,
         metrics.Affiliation,
+        metrics.time_tolerant,
     ]
     length = 30
 
@@ -454,7 +461,7 @@ if __name__ == "__main__":
     # length_problem_2()
     # short_predictions()
     # detection_over_covering()
-    # close_fp()
+    close_fp()
     # concise()
     # af_problem()
     # labelling_problem()
@@ -466,4 +473,4 @@ if __name__ == "__main__":
     #score_value_problem()
     #nonbinary_close_fp()
     #auc_roc_problem_2()
-    auc_roc_problem_3()
+    #auc_roc_problem_3()
