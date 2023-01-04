@@ -50,6 +50,8 @@ class Confusion_metrics_tester(unittest.TestCase):
         self.assertEqual(0.75, recall(tp=3, fn=1))
         self.assertEqual(0.75, precision(tp=3, fp=1))
         self.assertEqual(0.6, f1_score(tp=3, fn=1, fp=3))
+        self.assertEqual(0.625, f1_from_pr(p=1,r=0.25, beta=0.5))
+        self.assertAlmostEqual(5/9, f1_from_pr(p=1,r=0.5, beta=2))
 
     def test_requires_names(self):
         self.assertRaises(TypeError, recall, 3, 4)

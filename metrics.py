@@ -100,10 +100,10 @@ class Binary_detection:
         return self._gt.anomalies_binary
 
 
-def f1_from_pr(p, r):
+def f1_from_pr(p, r, beta=1):
     if r == 0 and p == 0:
        return 0
-    return (2 * r * p) / (r + p)
+    return ((1+beta**2) * r * p) / (beta**2*p + r)
 
 
 def f1_score(*args, tp, fp, fn):
