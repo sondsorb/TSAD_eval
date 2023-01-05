@@ -6,7 +6,8 @@ from nabscore import Sweeper
 from affiliation.metrics import pr_from_events as affiliation_pr
 from prts import ts_recall, ts_precision
 import time_tolerant as ttol
-from TaPR import TaPR as TaPR
+from eTaPR_pkg import etapr, tapr
+from eTaPR_pkg.DataManage import File_IO, Range
 
 
 def pointwise_to_segmentwise(pointwise):
@@ -299,33 +300,40 @@ class TaF(Redefined_PR_metric):
         self.prepare_scoring()
 
     def prepare_scoring(self):
-        self.prepare_files()
-        label=[0,1]
+        self.prepare_data()
+        self.TaPR = tapr.TaPR(theta=self.theta, delta=self.delta)
+        self.TaPR.set_anomalies(self.gt_anomalies)
+        self.TaPR.set_predictions(self.predicted_anomalies)
 
-        self.ev = TaPR(label, self.theta, self.delta)
-        self.ev.load_anomalies(self.gt_filename)
-        self.ev.load_predictions(self.pred_filename)
+    def prepare_data(self):
+        self.write_data_files()
+        self.read_data_files()
 
-    def prepare_files(self):
+    def write_data_files(self):
         self.gt_filename = "temp_gt.txt"
         with open(self.gt_filename, "w") as f:
             for x in self.get_gt_anomalies_binary():
-                f.write(str(int(x)))
+                f.write(str(1 if x==0 else -1))
                 f.write("\n")
         self.pred_filename = "temp_pred.txt"
         with open(self.pred_filename, "w") as f:
             for x in self.get_predicted_anomalies_binary():
-                f.write(str(int(x)))
+                f.write(str(1 if x==0 else -1))
                 f.write("\n")
 
+    def read_data_files(self):
+        self.gt_anomalies = File_IO.load_file(self.gt_filename, "stream")
+        self.predicted_anomalies = File_IO.load_file(self.pred_filename, "stream")
+
+
     def recall(self):
-        tard_value, detected_list = self.ev.TaR_d()
-        tarp_value = self.ev.TaR_p()
+        tard_value, detected_list = self.TaPR.TaR_d()
+        tarp_value = self.TaPR.TaR_p()
         return self.alpha*tard_value + (1-self.alpha)*tarp_value
 
     def precision(self):
-        tapd_value, correct_list = self.ev.TaP_d()
-        tapp_value = self.ev.TaP_p()
+        tapd_value, correct_list = self.TaPR.TaP_d()
+        tapp_value = self.TaPR.TaP_p()
         return self.alpha*tapd_value + (1-self.alpha)*tapp_value
 
 
@@ -333,7 +341,45 @@ class TaF(Redefined_PR_metric):
 
 
 class eTaF(Redefined_PR_metric):
-    pass
+    def __init__(self, *args, theta_p=0.5, theta_r=0.1, alpha=0.5, delta=0):
+        super().__init__(*args)
+        self.theta_p=theta_p
+        self.theta_r=theta_r
+        self.delta=delta
+        self.name = f"eTaF$_{{\\theta={(self.theta_p, self.theta_r)}}}^{{\\delta={self.delta}}}$"
+
+        self.make_scores()
+
+    def make_scores(self):
+        self.prepare_data()
+        self.result = etapr.evaluate_w_ranges(self.gt_anomalies, self.predicted_anomalies, theta_p = self.theta_p, theta_r=self.theta_r, delta=self.delta)
+
+
+    def prepare_data(self):
+        self.write_data_files()
+        self.read_data_files()
+
+    def write_data_files(self):
+        self.gt_filename = "temp_gt.txt"
+        with open(self.gt_filename, "w") as f:
+            for x in self.get_gt_anomalies_binary():
+                f.write(str(1 if x==0 else -1))
+                f.write("\n")
+        self.pred_filename = "temp_pred.txt"
+        with open(self.pred_filename, "w") as f:
+            for x in self.get_predicted_anomalies_binary():
+                f.write(str(1 if x==0 else -1))
+                f.write("\n")
+
+    def read_data_files(self):
+        self.gt_anomalies = File_IO.load_file(self.gt_filename, "stream")
+        self.predicted_anomalies = File_IO.load_file(self.pred_filename, "stream")
+
+    def recall(self):
+        return self.result["eTaR"]
+
+    def precision(self):
+        return self.result["eTaP"]
 
 class time_tolerant(Redefined_PR_metric): # Although ttol could be considered adjusted pointwise, it is implemented as redefined precision/recall
     def __init__(self, *args, d=2):
