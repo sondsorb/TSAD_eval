@@ -112,7 +112,7 @@ def create_table(anomalies, metric_list, length, name=None, scale=None):
 
     figure_contents = make_figure_content(length, anomalies)
     table_content = Table_content(
-        figure_contents, [metric(length, anomalies[0], []).name for metric in metric_list], results
+        figure_contents, [metric(length, anomalies[0], anomalies[1]).name for metric in metric_list], results
     )
 
     table = Table(table_content, name, scale)
@@ -134,6 +134,18 @@ def make_figure_content(
 ## Example problems ##
 ######################
 
+All_metrics = [
+    metrics.Pointwise_metrics,
+    metrics.PointAdjust,
+    metrics.Segmentwise_metrics,
+    metrics.Composite_f,
+    metrics.NAB_score,
+    metrics.Range_PR,
+    metrics.Affiliation,
+    metrics.time_tolerant,
+    metrics.TaF,
+    metrics.eTaF,
+]
 
 def PA_problem():
     anomalies = [[[25, 39]], [12, 36]]
@@ -148,84 +160,35 @@ def late_early_prediction():
     class Range_PR_front(metrics.Range_PR):
         def __init__(self, *args):
             super().__init__(*args, bias="front", alpha=0)
-
+    early_metrics = [metrics.PointAdjust, Range_PR_front, metrics.NAB_score]
     # anomalies = [[[5, 9], [15, 19]], [8,9], [7,8], [6,7], [5,6], [8,9,18,19],[7,8,17,18],[6,7,16,17], [5,6,15,16]]
     anomalies = [[[5, 9], [15, 19]], [9], [7], [5], [9, 19], [7, 17], [5, 15]]
-    metric_list = [metrics.PointAdjust, Range_PR_front, metrics.NAB_score]
     length = 22
-
-    create_table(anomalies, metric_list, length, scale=2)
-
+    create_table(anomalies, early_metrics, length, scale=2)
 
 def length_problem_1():
-
     # anomalies = [[[5,6], [15, 19]], [15,16,17,18,19], [5,6,15,16]]
     anomalies = [[[3, 4], [11, 12], [19, 23]], [[19, 23]], [3, 4, 11, 12]]
-    metric_list = [
-        metrics.Pointwise_metrics,
-        metrics.PointAdjust,
-        metrics.Segmentwise_metrics,
-        metrics.Composite_f,
-        metrics.Range_PR,
-        metrics.NAB_score,
-        metrics.Affiliation,
-        metrics.time_tolerant,
-    ]
     length = 24
-
-    create_table(anomalies, metric_list, length, scale=2)
+    create_table(anomalies, All_metrics, length, scale=2)
 
 
 def length_problem_2():
-
     anomalies = [[2, 4, 6, 15, 16, 17, 18, 19], [2, 3, 4, 5, 6], [2, 15, 16, 17, 18, 19]]
-    metric_list = [
-        metrics.Pointwise_metrics,
-        metrics.PointAdjust,
-        metrics.Segmentwise_metrics,
-        metrics.Composite_f,
-        metrics.Range_PR,
-        metrics.Affiliation,
-        metrics.time_tolerant,
-    ]  # , metrics.NAB_score]
     length = 22
-
-    create_table(anomalies, metric_list, length, scale=2)
+    create_table(anomalies, All_metrics, length, scale=2)
 
 
 def short_predictions():
-
     anomalies = [[[14, 20]], [3, 16], [2, 3, 4, 5, 6, 7, 15, 16, 17, 18, 19, 20]]
-    metric_list = [
-        metrics.Pointwise_metrics,
-        metrics.PointAdjust,
-        metrics.Segmentwise_metrics,
-        metrics.Composite_f,
-        metrics.Range_PR,
-        metrics.NAB_score,
-        metrics.Affiliation,
-        metrics.time_tolerant,
-    ]
     length = 22
-
-    create_table(anomalies, metric_list, length, scale=2)
+    create_table(anomalies, All_metrics, length, scale=2)
 
 
 def detection_over_covering():
     anomalies = [[[5, 12], [20, 27]], [[5, 12]], [5, 20]]  # , [[5,12],[20,27]]
-    metric_list = [
-        metrics.Pointwise_metrics,
-        metrics.PointAdjust,
-        metrics.Segmentwise_metrics,
-        metrics.Composite_f,
-        metrics.Range_PR,
-        metrics.NAB_score,
-        metrics.Affiliation,
-        metrics.time_tolerant,
-    ]
     length = 28
-
-    create_table(anomalies, metric_list, length, scale=2)
+    create_table(anomalies, All_metrics, length, scale=2)
 
 
 def close_fp():
@@ -236,25 +199,12 @@ def close_fp():
         metrics.time_tolerant,
     ]
     length = 17
-
     create_table(anomalies, metric_list, length, scale=2)
-
 
 def concise():
     anomalies = [[4, 5, 7, 8, 10, 12], [4, 5, 7, 8, 10], [[3, 15]]]
-    metric_list = [
-        metrics.Pointwise_metrics,
-        metrics.PointAdjust,
-        metrics.Segmentwise_metrics,
-        metrics.Composite_f,  # metrics.NAB_score,
-        metrics.Range_PR,
-        metrics.Affiliation,
-        metrics.time_tolerant,
-    ]
     length = 17
-
-    create_table(anomalies, metric_list, length, scale=2)
-
+    create_table(anomalies, All_metrics, length, scale=2)
 
 def af_problem():
     anomalies = [[29, 30, 35, 36], [25, 26, 35, 36], [29, 30, 34, 35]]
@@ -264,9 +214,7 @@ def af_problem():
         metrics.Affiliation
     ]
     length = 38
-
     create_table(anomalies, metric_list, length, scale=2)
-
 
 # def labelling_problem():
 #    anomalies = [[[6,7],[30,39]], [[15,16],[30,33]],[6,7,30,40], [[6,7],[15,16],[30,39]]]
@@ -285,22 +233,13 @@ def af_problem():
 
 def labelling_problem():
     anomalies = [[[18, 23]], [18, 24]]
-    metric_list = [
-        metrics.Pointwise_metrics,
-        metrics.PointAdjust,
-        metrics.Segmentwise_metrics,
-        metrics.Composite_f,  # metrics.NAB_score,
-        metrics.Range_PR,
-        metrics.Affiliation,
-        metrics.time_tolerant,
-    ]
     length = 30
 
-    create_table(anomalies, metric_list, length, scale=2)
+    create_table(anomalies, All_metrics, length, scale=2)
 
     anomalies = [[18, 24], [[18, 23]]]
 
-    create_table(anomalies, metric_list, length, scale=2)
+    create_table(anomalies, All_metrics, length, scale=2)
 
 
 ##############################################
@@ -371,7 +310,7 @@ def gaussian_smoothing(binary_prediction, length, std = 1):
         smooth_score += point_val * np.exp(-(indices-i)**2/(2*std))
     return smooth_score
 
-metric_list = [
+Nonbinary_metrics= [
     metrics.AUC_ROC,
     metrics.AUC_PR_pw,
     metrics.PatK_pw,
@@ -381,23 +320,23 @@ def nonbinary_labelling_problem():
     length = 30
     anomaly_scores = [random_anomaly_score(length,[18, 24], postsmoothing_kernel=[1])]
     gt = [[18, 23]]
-    create_nonbinary_table(gt, anomaly_scores, metric_list, length, scale=2)
+    create_nonbinary_table(gt, anomaly_scores, Nonbinary_metrics, length, scale=2)
 
     gt = [18, 24]
     anomaly_scores = [random_anomaly_score(length,[[18, 23]], postsmoothing_kernel=[1])]
-    create_nonbinary_table(gt, anomaly_scores, metric_list, length, scale=2)
+    create_nonbinary_table(gt, anomaly_scores, Nonbinary_metrics, length, scale=2)
 
 def nonbinary_detection_over_covering():
     gt = [[5,12], [35,42]]
     length = 45
     anomaly_scores = [random_anomaly_score(length, x) for x in [[[5,12]], [5,35]] ]
-    create_nonbinary_table(gt, anomaly_scores, metric_list, length, scale=1.5)
+    create_nonbinary_table(gt, anomaly_scores, Nonbinary_metrics, length, scale=1.5)
 
 def auc_roc_problem():
     gt = [14,15,16]
     length = 45
     anomaly_scores = [random_anomaly_score(length, x, postsmoothing_kernel=[1]) for x in [[14,15], [[12,20]]] ]
-    create_nonbinary_table(gt, anomaly_scores, metric_list, length, scale=1.5)
+    create_nonbinary_table(gt, anomaly_scores, Nonbinary_metrics, length, scale=1.5)
 
 
 def nonbinary_length_problem_1():
@@ -405,7 +344,7 @@ def nonbinary_length_problem_1():
     gt = [[3,4], [11,12], [19, 25]]
     length = 27
     anomaly_scores = [random_anomaly_score(length, x) for x in [[[19,25]], [3,4,11,12]] ]
-    create_nonbinary_table(gt, anomaly_scores, metric_list, length, scale=2)
+    create_nonbinary_table(gt, anomaly_scores, Nonbinary_metrics, length, scale=2)
 
 def score_value_problem():
 
@@ -413,7 +352,7 @@ def score_value_problem():
     length = 21
     x = np.arange(21)
     anomaly_scores = 1/(1+abs(x-10)), (10.1-abs(x-10))**0.5/3
-    create_nonbinary_table(gt, anomaly_scores, metric_list, length, scale=2)
+    create_nonbinary_table(gt, anomaly_scores, Nonbinary_metrics, length, scale=2)
 
 def create_nonbinary_table(gt, anomaly_scores, metric_list, length, name=None, scale=None):
     results = []
@@ -440,37 +379,109 @@ def nonbinary_close_fp():
     length = 17
     gt = [12, 13, 14]
     anomaly_scores = [gaussian_smoothing(x, length, std=2) for x in [[8], [9], [10], [11]]]
-    create_nonbinary_table(gt, anomaly_scores, metric_list, length, scale=2)
+    create_nonbinary_table(gt, anomaly_scores, Nonbinary_metrics, length, scale=2)
 
 def auc_roc_problem_2():
     length = 128
     gt = [[10,14]]
     anomaly_scores = [random_anomaly_score(length, pred) for length in [16,32,64,128] for pred in [[10,11],[[5,15]]]]
-    create_nonbinary_table(gt, anomaly_scores, metric_list, length, scale=0.8)
+    create_nonbinary_table(gt, anomaly_scores, Nonbinary_metrics, length, scale=0.8)
 
 def auc_roc_problem_3():
     length = 128
     gt = [[10,14]]
     anomaly_scores = [gaussian_smoothing(pred, length, std=10) for length in [16,32,64,128] for pred in [[0]]]
-    create_nonbinary_table(gt, anomaly_scores, metric_list, length, scale=0.8)
+    create_nonbinary_table(gt, anomaly_scores, Nonbinary_metrics, length, scale=0.8)
+
+###########################
+### Discontinuity graph ###
+###########################
+class Discontinuity_table(Table):
+    def __init__(self, metric_names, results):
+        self.metric_names = metric_names
+        self.results = results
+        super().__init__(Table_content([],[],[]), scale=2)
+        self.x_factor = 1 / 10
+        self.y_factor = 1 / 5 * 2 / self.scale
+
+        self.row_length = 2
+        self.n_rows = len(metric_names)
+
+    def add_top_row(self):
+        self.string += ("Metric")
+        self.string += "&"
+        self.string += ("Score")
+        self.end_row()
+
+    def add_next_row(self):
+        self.string +=(self.metric_names[self.rows_added])
+        self.string += "&"
+        self.add_graph(self.rows_added + 1)
+        self.end_row()
+        self.rows_added += 1
+
+    def add_graph(self, number):
+        self.add_line(
+            f"\\begin{{tikzpicture}}[scale={self.scale}, baseline=-\\the\\dimexpr\\fontdimen22\\textfont2\\relax]"
+        )
+        self.add_line("\\foreach \\i/\\a in")
+        self.add_line(
+            str([(i * self.x_factor, a * self.y_factor) for i, a in enumerate(self.results[self.metric_names[number - 1]])])
+            .replace(",", "/")
+            .replace(")/", ",")
+            .replace("(", "")
+            .replace("[", "{")
+            .replace("]", "}")
+            .replace(")}", "}{")
+        )
+        self.add_line("\\coordinate (now) at (\\i,\\a) {};")
+        self.add_line("  \\ifthenelse{\\equal{\\i}{0.0}}{}{")
+        self.add_line("  \\draw[-, blue] (prev) -- (now);")
+        self.add_line("  }")
+        self.add_line("  \\coordinate (prev) at (\\i,\\a) {};")
+        self.add_line("}")
+        self.add_line("\\end{tikzpicture}")
+
+
+def discontinuity_graphs():
+
+    result = {}
+    ts_length = 100
+    pred_length = 10
+    gt_length = 30
+    gt_start = 40
+    metric_names=[]
+    for metric in All_metrics:
+        metric_names.append(metric(5, [3,4], [3]).name)
+        result[metric_names[-1]] = []
+        for pred_start in range(ts_length-pred_length):
+            gt = [[gt_start, gt_start+gt_length]]
+            pred=[[pred_start, pred_start+pred_length]]
+            result[metric_names[-1]].append(metric(ts_length, gt, pred).get_score())
+    table = Discontinuity_table(metric_names,result)
+    table.write()
+    print(table)
+
 
 if __name__ == "__main__":
-    # PA_problem()
-    # late_early_prediction()
-    # length_problem_1()
-    # length_problem_2()
-    # short_predictions()
-    # detection_over_covering()
-    close_fp()
-    # concise()
-    # af_problem()
-    # labelling_problem()
+    #PA_problem()
+    #late_early_prediction()
+    #length_problem_1()
+    #length_problem_2()
+    #short_predictions()
+    #detection_over_covering()
+    #close_fp()
+    #concise()
+    #af_problem()
+    #labelling_problem()
 
-    #threshold_test()
+    ##threshold_test()
     #nonbinary_detection_over_covering()
-    # auc_roc_problem()
-    # nonbinary_length_problem_1()
+    #auc_roc_problem()
+    #nonbinary_length_problem_1()
     #score_value_problem()
     #nonbinary_close_fp()
     #auc_roc_problem_2()
     #auc_roc_problem_3()
+
+    discontinuity_graphs()

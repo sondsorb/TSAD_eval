@@ -417,16 +417,19 @@ class NAB_score(Binary_detection):
         if len(self.get_gt_anomalies_ptwise()) == 0:
             return np.nan  # perfect_score == null_score
 
-        scoresByThreshold = self.get_scoresByThreshold(self.get_predicted_anomalies_ptwise())
+        try:
+            scoresByThreshold = self.get_scoresByThreshold(self.get_predicted_anomalies_ptwise())
 
-        null_score = scoresByThreshold[0].score
-        raw_score = scoresByThreshold[1].score
+            null_score = scoresByThreshold[0].score
+            raw_score = scoresByThreshold[1].score
 
-        scoresByThreshold = self.get_scoresByThreshold(self.get_gt_anomalies_ptwise())
-        assert scoresByThreshold[1].total == scoresByThreshold[1].tp + scoresByThreshold[1].tn
-        perfect_score = scoresByThreshold[1].score
+            scoresByThreshold = self.get_scoresByThreshold(self.get_gt_anomalies_ptwise())
+            assert scoresByThreshold[1].total == scoresByThreshold[1].tp + scoresByThreshold[1].tn
+            perfect_score = scoresByThreshold[1].score
 
-        return (raw_score - null_score) / (perfect_score - null_score)
+            return (raw_score - null_score) / (perfect_score - null_score)
+        except ZeroDivisionError:
+            return np.nan
 
     def get_scoresByThreshold(self, prediction):
         anomaly_scores = pointwise_to_binary(prediction, self.get_length())
