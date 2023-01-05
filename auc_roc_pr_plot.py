@@ -76,13 +76,13 @@ class Two_1d_normal_distributions:
                 self.o_threshold.append(threshold)
                 # print(os, TN+FN)
 
-    def plot_roc_pr(self, roc_ax, pr_ax, plot_xs=True, plot_ys=True, plot_fs=False):
+    def plot_roc_pr(self, roc_ax, pr_ax, plot_xs=True, plot_os=True, plot_fs=False):
         roc_ax.plot(self.fpr, self.recall, self.color, zorder=1)
         pr_ax.plot(self.precision, self.recall, self.color, zorder=1)
         if plot_xs:
             roc_ax.plot(self.x_fpr, self.x_recall, "x", color=self.color, zorder=1)
             pr_ax.plot(self.x_precision, self.x_recall, "x", color=self.color, zorder=1)
-        if plot_xs:
+        if plot_os:
             roc_ax.plot(self.o_fpr, self.o_recall, "o", color=self.color, fillstyle="none", zorder=1)
             pr_ax.plot(self.o_precision, self.o_recall, "o", color=self.color, fillstyle="none", zorder=1)
         if plot_fs:
@@ -93,6 +93,22 @@ class Two_1d_normal_distributions:
                 #pr_ax.plot([self.max_f_precision[beta]], [self.max_f_recall[beta]], marker=f"$1/{int(1/beta)}$" if beta<1 else f"${beta}$", zorder=2, color="k")
                 roc_ax.text(self.max_f_fpr[beta]+0.01,self.max_f_recall[beta]-0.02, f"$1/{int(1/beta)}$" if beta<1 else f"${beta}$")
                 pr_ax.text(self.max_f_precision[beta]+0.01, self.max_f_recall[beta]+0.01,f"$1/{int(1/beta)}$" if beta<1 else f"${beta}$")
+
+    def plot_roc_prec(self):
+        plt.plot(self.fpr, self.recall, self.color, zorder=1)
+        plt.plot(self.fpr, self.precision, self.color, zorder=1)
+        plt.show()
+
+    def plot_roc_pr_lines(self, ax):
+        ax.plot(self.fpr, np.array(self.recall)+1, self.color, zorder=1)
+        ax.plot(np.array(self.precision)*(-1)+1, self.recall, self.color, zorder=1)
+        #for i in range(len(self.x_fpr)):
+        #    plt.plot([self.x_fpr[i], 1-self.x_precision[i]], [self.x_recall[i]+1,self.x_recall[i]], marker="x", color=self.P_color, zorder=1, alpha=0.3)
+        #for i in range(len(self.o_fpr)):
+        #    plt.plot([self.o_fpr[i], 1-self.o_precision[i]], [self.o_recall[i]+1,self.o_recall[i]], marker="o", color=self.N_color, zorder=1, alpha=0.3)
+        for i in range(0,len(self.recall), 5):
+            ax.plot([self.fpr[i], 1-self.precision[i]], [self.recall[i]+1,self.recall[i]], marker="o", color=self.N_color, zorder=1, alpha=0.3)
+
 
     def plot_distributions(self, ax, start=-5, stop=8, steps=1001, normalize=True):
         grid = np.linspace(start, stop, steps)
@@ -147,6 +163,10 @@ if __name__ == "__main__":
     t1.make(steps=1001, delta=0.1)
     t2.make(steps=1001, delta=0.1)
 
+    #t1.plot_roc_prec()
+    #t1.plot_roc_pr_lines()
+    #t2.plot_roc_pr_lines()
+    #quit()
     #Local visualtization:
 
     #fig, axes = plt.subplots(2, 1)
@@ -163,6 +183,19 @@ if __name__ == "__main__":
     # Save plots:
 
     figsize=(5,5)
+
+    plt.figure(figsize=figsize)
+    t1.plot_roc_pr_lines(plt)
+    plt.tight_layout()
+    plt.savefig("lines_1.pdf")
+    plt.show()
+    plt.close("all")
+    plt.figure(figsize=figsize)
+    t2.plot_roc_pr_lines(plt)
+    plt.tight_layout()
+    plt.savefig("lines_2.pdf")
+    plt.show()
+    plt.close("all")
 
     roc_fig, roc_ax = plt.subplots(figsize=figsize)
     plt.tight_layout()
