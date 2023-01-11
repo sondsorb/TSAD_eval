@@ -156,10 +156,10 @@ def PA_problem():
     create_table(anomalies, metric_list, length, name, scale=2)
 
 
+class Range_PR_front(metrics.Range_PR):
+    def __init__(self, *args):
+        super().__init__(*args, bias="front", alpha=0)
 def late_early_prediction():
-    class Range_PR_front(metrics.Range_PR):
-        def __init__(self, *args):
-            super().__init__(*args, bias="front", alpha=0)
     early_metrics = [metrics.PointAdjust, Range_PR_front, metrics.NAB_score]
     # anomalies = [[[5, 9], [15, 19]], [8,9], [7,8], [6,7], [5,6], [8,9,18,19],[7,8,17,18],[6,7,16,17], [5,6,15,16]]
     anomalies = [[[5, 9], [15, 19]], [9], [7], [5], [9, 19], [7, 17], [5, 15]]
@@ -397,12 +397,13 @@ def auc_roc_problem_3():
 ### Discontinuity graph ###
 ###########################
 class Discontinuity_table(Table):
-    def __init__(self, metric_names, results):
+    def __init__(self, metric_names, results, marks=[]):
         self.metric_names = metric_names
         self.results = results
+        self.marks = marks
         super().__init__(Table_content([],[],[]), scale=2)
-        self.x_factor = 1 / 10
-        self.y_factor = 1 / 5 * 2 / self.scale
+        self.x_factor = 1 / 20
+        self.y_factor = 1 / 2 / self.scale
 
         self.row_length = 2
         self.n_rows = len(metric_names)
@@ -424,6 +425,9 @@ class Discontinuity_table(Table):
         self.add_line(
             f"\\begin{{tikzpicture}}[scale={self.scale}, baseline=-\\the\\dimexpr\\fontdimen22\\textfont2\\relax]"
         )
+        for x in self.marks:
+            self.add_line(f"\draw[-, gray] ({x*self.x_factor},0) -- ({x*self.x_factor},{0.2*self.y_factor});")
+        self.add_line(f"\draw[-, gray] (0,0) -- ({self.x_factor*(len(self.results[self.metric_names[number-1]])-1)},0);")
         self.add_line("\\foreach \\i/\\a in")
         self.add_line(
             str([(i * self.x_factor, a * self.y_factor) for i, a in enumerate(self.results[self.metric_names[number - 1]])])
@@ -447,18 +451,22 @@ def discontinuity_graphs():
 
     result = {}
     ts_length = 100
-    pred_length = 10
-    gt_length = 30
+    pred_length = 5
+    gt_length = 20
     gt_start = 40
+    marks=[35,40,55,60]
     metric_names=[]
-    for metric in All_metrics:
+    for metric in [*All_metrics, Range_PR_front]:
         metric_names.append(metric(5, [3,4], [3]).name)
-        result[metric_names[-1]] = []
+        current_result = np.zeros(ts_length-pred_length)
         for pred_start in range(ts_length-pred_length):
-            gt = [[gt_start, gt_start+gt_length]]
-            pred=[[pred_start, pred_start+pred_length]]
-            result[metric_names[-1]].append(metric(ts_length, gt, pred).get_score())
-    table = Discontinuity_table(metric_names,result)
+            gt = [[gt_start, gt_start+gt_length-1]]
+            pred=[[pred_start, pred_start+pred_length-1]]
+            current_result[pred_start] = metric(ts_length, gt, pred).get_score()
+        current_result = (current_result-min(current_result))/(max(current_result)-min(current_result))
+        result[metric_names[-1]] = current_result
+
+    table = Discontinuity_table(metric_names,result, marks)
     table.write()
     print(table)
 
