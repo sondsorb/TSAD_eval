@@ -13,10 +13,17 @@ plt.figure(figsize=figsize)
 plt.plot(x, y)
 
 for t in [0.5, 1, 1.5, 2, 2.5]:
-    plt.plot(x, x + t - x, ".k")
+    plt.plot(x, x + t - x, ".g")
     for i in range(len(x)):
         if t < y[i]:
             plt.plot([x[i]], [t], ".r")
+            plt.plot([x[i]], [t], "xk", markersize=2)
+
+fs=7
+plt.xlabel("Time", fontsize=fs)
+plt.ylabel("Anomaly score / Threshold", fontsize=fs)
+plt.xticks(fontsize=fs)
+plt.yticks(fontsize=fs)
 
 plt.tight_layout()
 plt.savefig("thr2.pdf")
