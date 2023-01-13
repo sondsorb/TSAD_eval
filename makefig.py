@@ -22,17 +22,15 @@ class Figure:
         self.current_height = 0
 
         self.scale = scale
-        self.steplength = 0.2
-        self.title_placement = -0.7
+        self.steplength = .2*self.scale
+        self.title_placement = -.7*self.scale
 
-        self.normal_color = "black"
-        self.anomaly_color = "red"
-        self.circle_radius = 0.5
-        self.point_step_length = 0.1
+        self.circle_radius = 0.05*self.scale
+        self.point_step_length = .1*self.scale
 
     def make(self):
         self.add_line(
-            f"\\begin{{tikzpicture}}[scale={self.scale}, baseline=-\\the\\dimexpr\\fontdimen22\\textfont2\\relax]"
+            f"\\begin{{tikzpicture}}[baseline=-\\the\\dimexpr\\fontdimen22\\textfont2\\relax]"
         )
         self.add_all_content()
         self.add_line("\\end{tikzpicture}")
@@ -70,28 +68,16 @@ class Figure:
 
     def add_row_line(self):
         self.add_line(
-            f"\\draw (0,{self.current_height}) -- ({round(self.content.time_series_length*self.point_step_length-self.point_step_length,2)},{self.current_height});"
+            f"\\draw (0,{self.current_height}) -- ({round(self.content.time_series_length*self.point_step_length-self.point_step_length,3)},{self.current_height});"
         )
 
     def add_row_points(self):
-        self.add_for_loop(0, self.content.time_series_length, self.point_step_length)
-        self.add_circles(self.normal_color)
+        self.add_line(f"\\nomalies[first x=0, second x={round(self.point_step_length,3)}, last x={round(self.content.time_series_length*self.point_step_length-0.01,3)}, y={self.current_height}, radius={round(self.circle_radius,3)}]") # last one NOT included (-0.01)
 
     def add_row_anomalies(self):
+        step=self.point_step_length
         for start, stop in self.content.anomalies[self.rows_added]:
-            self.add_for_loop(start, stop + 1, self.point_step_length)
-            self.add_circles(self.anomaly_color)
-
-    def add_for_loop(self, start, end, step):
-        if end - start > 1.001:
-            self.add_line(
-                f"\\foreach \\i in {{{round(start*step,2)}, {round(start*step+step,2)},..., {round(end*step-0.01,2)}}}"  # -0.01 to make sure last step is excluded
-            )
-        else:
-            self.add_line(f"\\foreach \\i in {{{round(start*step,2)}}}")
-
-    def add_circles(self, color):
-        self.add_line(f"  \\fill[{color}] (\\i,{self.current_height}) circle ({self.circle_radius} mm);")
+            self.add_line(f"\\anomalies[first x={round(start*step,3)}, second x={round(start*step+step,3)}, last x={round(stop*step+0.01,3)}, y={self.current_height}, radius={round(self.circle_radius,3)}]") # last one included (+0.01
 
     def add_row_explainations(self):
         pass

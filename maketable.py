@@ -268,7 +268,7 @@ class Nonbinary_Table(Table):
         )
         self.add_line("\\foreach \\i/\\a in")
         self.add_line(
-            str([(i * self.x_factor, a * self.y_factor) for i, a in enumerate(self.anomaly_scores[number - 1])])
+            str([(round(i * self.x_factor,3), round(a * self.y_factor,3)) for i, a in enumerate(self.anomaly_scores[number - 1])])
             .replace(",", "/")
             .replace(")/", ",")
             .replace("(", "")
@@ -397,9 +397,9 @@ def auc_roc_problem_3():
 
 if __name__ == "__main__":
     #PA_problem()
-    #late_early_prediction()
-    #length_problem_1()
-    #length_problem_2()
+    late_early_prediction()
+    length_problem_1()
+    length_problem_2()
     #short_predictions()
     #detection_over_covering()
     #close_fp()
@@ -413,5 +413,5 @@ if __name__ == "__main__":
     #nonbinary_length_problem_1()
     #score_value_problem()
     #nonbinary_close_fp()
-    auc_roc_problem_2()
+    #auc_roc_problem_2()
     #auc_roc_problem_3()
