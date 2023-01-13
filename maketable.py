@@ -139,12 +139,12 @@ All_metrics = [
     metrics.PointAdjust,
     metrics.Segmentwise_metrics,
     metrics.Composite_f,
-    metrics.NAB_score,
-    metrics.Range_PR,
-    metrics.Affiliation,
     metrics.time_tolerant,
+    metrics.Range_PR,
     metrics.TaF,
     metrics.eTaF,
+    metrics.Affiliation,
+    metrics.NAB_score,
 ]
 
 def PA_problem():
@@ -413,6 +413,5 @@ if __name__ == "__main__":
     #nonbinary_length_problem_1()
     #score_value_problem()
     #nonbinary_close_fp()
-    #auc_roc_problem_2()
+    auc_roc_problem_2()
     #auc_roc_problem_3()
-    pass

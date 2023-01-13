@@ -131,7 +131,7 @@ class original_PR_metric(Binary_detection):
 class Pointwise_metrics(original_PR_metric):
     def __init__(self, *args):
         super().__init__(*args)
-        self.name = "PW"
+        self.name = "\\pwf[1]"
         self.set_confusion()
 
     def set_confusion(self):
@@ -151,7 +151,7 @@ class Pointwise_metrics(original_PR_metric):
 class PointAdjust(Pointwise_metrics):
     def __init__(self, *args):
         super().__init__(*args)
-        self.name = "PA"
+        self.name = "\\paf[1]"
         self.adjust()
         self.set_confusion()
 
@@ -170,7 +170,7 @@ class PointAdjust(Pointwise_metrics):
 
 class Segmentwise_metrics(original_PR_metric):
     def __init__(self, *args):
-        self.name = "SF"
+        self.name = "\\segf[1]"
         super().__init__(*args)
         self.set_confusion()
 
@@ -222,7 +222,7 @@ class Redefined_PR_metric(Binary_detection):
 
 class Composite_f(Redefined_PR_metric):
     def __init__(self, *args):
-        self.name = "CF"
+        self.name = "\\cf[1]"
         super().__init__(*args)
 
         self.pointwise_metrics = Pointwise_metrics(*args)
@@ -237,7 +237,7 @@ class Composite_f(Redefined_PR_metric):
 
 class Affiliation(Redefined_PR_metric):
     def __init__(self, *args):
-        self.name = "AF"
+        self.name = "\\af[1]"
         super().__init__(*args)
 
     def get_score(self):
@@ -270,7 +270,7 @@ class Range_PR(Redefined_PR_metric):
         self.set_name()
 
     def set_name(self):
-        self.name = f"RF$_{{{self.bias}}}^{{\\alpha={self.alpha}}}$"
+        self.name = f"\\rf[1]{{{self.bias}}}{{{self.alpha}}}"
 
     def set_kwargs(self):
         real = np.zeros(self.get_length())
@@ -295,7 +295,7 @@ class TaF(Redefined_PR_metric):
         self.alpha=alpha
         self.theta=theta
         self.delta=delta
-        self.name = f"TaP$_{{\\theta={self.theta},\\delta={self.delta}}}^{{\\alpha={self.alpha}}}$"
+        self.name = f"\\taf[1]{{{self.alpha}}}{{{self.delta}}}{{{self.theta}}}"
 
         self.prepare_scoring()
 
@@ -346,7 +346,8 @@ class eTaF(Redefined_PR_metric):
         self.theta_p=theta_p
         self.theta_r=theta_r
         self.delta=delta
-        self.name = f"eTaF$_{{\\theta={(self.theta_p, self.theta_r)}}}^{{\\delta={self.delta}}}$"
+
+        self.name = f"\\etaf[1]{{{self.delta}}}{{{self.theta_p}}}{{{self.theta_r}}}"
 
         self.make_scores()
 
@@ -385,7 +386,7 @@ class time_tolerant(Redefined_PR_metric): # Although ttol could be considered ad
     def __init__(self, *args, d=2):
         super().__init__(*args)
         self.d = d
-        self.name = f"ttol$_{d}$"
+        self.name = f"\\ttolf[1]{{{d}}}"
 
     def recall(self):
         return ttol.recall(**self.get_kwargs())
@@ -406,7 +407,7 @@ class time_tolerant(Redefined_PR_metric): # Although ttol could be considered ad
 
 class NAB_score(Binary_detection):
     def __init__(self, *args):
-        self.name = "NAB/100"
+        self.name = "\\nab/100"
         super().__init__(*args)
 
         self.sweeper = Sweeper(probationPercent=0, costMatrix={"tpWeight": 1, "fpWeight": 0.11, "fnWeight": 1})
@@ -467,7 +468,7 @@ class Nonbinary_detection:
 
 class Best_threshold_pw(Nonbinary_detection):
     def __init__(self, *args):
-        self.name = "pw-best"
+        self.name = "\\bestpwf"
         super().__init__(*args)
 
     def get_score(self):
@@ -488,7 +489,7 @@ class Best_threshold_pw(Nonbinary_detection):
 
 class AUC_ROC(Nonbinary_detection):
     def __init__(self, *args):
-        self.name = "AUC-ROC"
+        self.name = "\\aucroc"
         super().__init__(*args)
 
     def get_score(self):
@@ -498,7 +499,7 @@ class AUC_ROC(Nonbinary_detection):
 
 class AUC_PR_pw(Nonbinary_detection):
     def __init__(self, *args):
-        self.name = "AUC-PR"
+        self.name = "\\aucpr"
         super().__init__(*args)
 
     def get_score(self):
@@ -509,7 +510,7 @@ class AUC_PR_pw(Nonbinary_detection):
 class PatK_pw(Nonbinary_detection):
     def __init__(self, *args):
         super().__init__(*args)
-        self.name = f"P@{len(self.get_gt_anomalies_ptwise())}"
+        self.name = f"\\patk[{len(self.get_gt_anomalies_ptwise())}]"
 
     def get_score(self):
         gt = self.get_gt_anomalies_binary()

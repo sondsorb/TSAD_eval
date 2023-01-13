@@ -63,14 +63,18 @@ def discontinuity_graphs():
     gt_length = 20
     gt_start = 40
     marks=[35,40,55,60]
+    assert pred_length%2==1
     metric_names=[]
-    for metric in [*All_metrics, Range_PR_front]:
+    All_metrics.remove(metrics.Range_PR)
+    all_metrics_and_rffront = [*All_metrics, metrics.Range_PR, Range_PR_front]
+    for metric in all_metrics_and_rffront:
         metric_names.append(metric(5, [3,4], [3]).name)
-        current_result = np.zeros(ts_length-pred_length)
-        for pred_mid in range(ts_length-pred_length):
+        current_result = []
+        for pred_mid in range(pred_length//2, ts_length-pred_length//2):
             gt = [[gt_start, gt_start+gt_length-1]]
-            pred=[[max(0,pred_mid-pred_length//2), pred_mid+pred_length//2]]
-            current_result[pred_mid] = metric(ts_length, gt, pred).get_score()
+            pred=[[pred_mid-pred_length//2, pred_mid+pred_length//2]]
+            current_result.append(metric(ts_length, gt, pred).get_score())
+        current_result = np.array(current_result)
         current_result = (current_result-min(current_result))/(max(current_result)-min(current_result))
         result[metric_names[-1]] = current_result
 
