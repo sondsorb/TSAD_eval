@@ -77,7 +77,11 @@ class Figure:
     def add_row_anomalies(self):
         step=self.point_step_length
         for start, stop in self.content.anomalies[self.rows_added]:
-            self.add_line(f"\\anomalies[first x={round(start*step,3)}, second x={round(start*step+step,3)}, last x={round(stop*step+0.01,3)}, y={self.current_height}, radius={round(self.circle_radius,3)}]") # last one included (+0.01
+            if stop>start:
+                self.add_line(f"\\anomalies[first x={round(start*step,3)}, second x={round(start*step+step,3)}, last x={round(stop*step+0.01,3)}, y={self.current_height}, radius={round(self.circle_radius,3)}]") # last one included (+0.01
+            else:
+                self.add_line(f"\\anomaly{{{round(start*step,3)}}}{{{self.current_height}}}{{{round(self.circle_radius, 3)}}}")
+
 
     def add_row_explainations(self):
         pass

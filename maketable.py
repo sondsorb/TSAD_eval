@@ -397,15 +397,15 @@ def auc_roc_problem_3():
 
 if __name__ == "__main__":
     #PA_problem()
-    late_early_prediction()
-    length_problem_1()
-    length_problem_2()
+    #late_early_prediction()
+    #length_problem_1()
+    #length_problem_2()
     #short_predictions()
     #detection_over_covering()
     #close_fp()
-    #concise()
+    concise()
     #af_problem()
-    #labelling_problem()
+    labelling_problem()
 
     ##threshold_test()
     #nonbinary_detection_over_covering()
