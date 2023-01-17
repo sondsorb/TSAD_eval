@@ -137,6 +137,8 @@ def make_figure_content(
 All_metrics = [
     metrics.Pointwise_metrics,
     metrics.PointAdjust,
+    metrics.DelayThresholdedPointAdjust,
+    metrics.PointAdjustKPercent,
     metrics.Segmentwise_metrics,
     metrics.Composite_f,
     metrics.time_tolerant,
@@ -202,8 +204,8 @@ def close_fp():
     create_table(anomalies, metric_list, length, scale=2)
 
 def concise():
-    anomalies = [[4, 5, 7, 8, 10, 12], [4, 5, 7, 8, 10], [[3, 15]]]
-    length = 17
+    anomalies = [[4, 5, 8, 9, 12,15], [4, 5, 8, 9, 15], [[3, 18]]]
+    length = 22
     create_table(anomalies, All_metrics, length, scale=2)
 
 def af_problem():
@@ -396,15 +398,25 @@ def auc_roc_problem_3():
 
 
 if __name__ == "__main__":
-    #PA_problem()
-    #late_early_prediction()
-    #length_problem_1()
-    #length_problem_2()
-    #short_predictions()
-    #detection_over_covering()
-    #close_fp()
+    print("PA problem")
+    PA_problem()
+    print("late_early_prediction")
+    late_early_prediction()
+    print("length_problem_1")
+    length_problem_1()
+    print("length_problem_2")
+    length_problem_2()
+    print("short_predictions")
+    short_predictions()
+    print("detection_over_covering")
+    detection_over_covering()
+    print("close_fp")
+    close_fp()
+    print("concise")
     concise()
-    #af_problem()
+    print("af_problem")
+    af_problem()
+    print("labelling_problem")
     labelling_problem()
 
     ##threshold_test()

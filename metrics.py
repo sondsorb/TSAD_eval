@@ -114,11 +114,11 @@ def f1_score(*args, tp, fp, fn):
 
 
 def recall(*args, tp, fn):
-    return tp / (tp + fn)
+    return 0 if tp+fn==0 else tp / (tp + fn)
 
 
 def precision(*args, tp, fp):
-    return tp / (tp + fp)
+    return 0 if tp+fp==0 else tp / (tp + fp)
 
 
 class original_PR_metric(Binary_detection):
@@ -147,11 +147,11 @@ class Pointwise_metrics(original_PR_metric):
         self.fp = np.sum(pred * (1 - gt))
         self.fn = np.sum((1 - pred) * gt)
 
-
-class PointAdjust(Pointwise_metrics):
-    def __init__(self, *args):
+class DelayThresholdedPointAdjust(Pointwise_metrics):
+    def __init__(self, *args, k=2):
         super().__init__(*args)
-        self.name = "\\paf[1]"
+        self.name = "\\dtpaf[1]{{{k}}}"
+        self.k=k
         self.adjust()
         self.set_confusion()
 
@@ -159,11 +159,47 @@ class PointAdjust(Pointwise_metrics):
 
         adjusted_prediction = self.get_predicted_anomalies_ptwise().tolist()
         for start, end in self.get_gt_anomalies_segmentwise():
-            for i in range(start, end + 1):
+            anomaly_adjusted=False
+            for i in range(start, min(start + self.k + 1, end+1)):
                 if i in adjusted_prediction:
                     for j in range(start, end + 1):
                         adjusted_prediction.append(j)
+                    anomaly_adjusted = True
                     break
+            if anomaly_adjusted == False:
+                for i in range(start, end + 1):
+                    try:
+                        adjusted_prediction.remove(i)
+                    except ValueError:
+                        pass
+
+        self._prediction._set_anomalies(np.sort(np.unique(adjusted_prediction)))
+
+class PointAdjust(DelayThresholdedPointAdjust):
+    def __init__(self, *args):
+        super().__init__(*args, k=args[0]) # set k to length of time series to avoid threshold making a difference
+        self.name = "\\paf[1]"
+
+class PointAdjustKPercent(Pointwise_metrics):
+    def __init__(self, *args, k=0.2):
+        super().__init__(*args)
+        self.name = "\\pakf[1]{{{k}}}"
+        self.k=k
+        self.adjust()
+        self.set_confusion()
+
+    def adjust(self):
+
+        adjusted_prediction = self.get_predicted_anomalies_ptwise().tolist()
+        for start, end in self.get_gt_anomalies_segmentwise():
+            correct_points=0
+            for i in range(start, end+1):
+                if i in adjusted_prediction:
+                    correct_points += 1
+                    if correct_points/(end+1-start) >= self.k:
+                        for j in range(start, end + 1):
+                            adjusted_prediction.append(j)
+                        break
 
         self._prediction._set_anomalies(np.sort(np.unique(adjusted_prediction)))
 
@@ -290,7 +326,7 @@ class Range_PR(Redefined_PR_metric):
 
 
 class TaF(Redefined_PR_metric):
-    def __init__(self, *args, theta=0.5, alpha=0.5, delta=2):
+    def __init__(self, *args, theta=0.5, alpha=0.5, delta=0):
         super().__init__(*args)
         self.alpha=alpha
         self.theta=theta
@@ -341,19 +377,18 @@ class TaF(Redefined_PR_metric):
 
 
 class eTaF(Redefined_PR_metric):
-    def __init__(self, *args, theta_p=0.5, theta_r=0.1, alpha=0.5, delta=0):
+    def __init__(self, *args, theta_p=0.5, theta_r=0.1):
         super().__init__(*args)
         self.theta_p=theta_p
         self.theta_r=theta_r
-        self.delta=delta
 
-        self.name = f"\\etaf[1]{{{self.delta}}}{{{self.theta_p}}}{{{self.theta_r}}}"
+        self.name = f"\\etaf[1]{{{self.theta_p}}}{{{self.theta_r}}}"
 
         self.make_scores()
 
     def make_scores(self):
         self.prepare_data()
-        self.result = etapr.evaluate_w_ranges(self.gt_anomalies, self.predicted_anomalies, theta_p = self.theta_p, theta_r=self.theta_r, delta=self.delta)
+        self.result = etapr.evaluate_w_ranges(self.gt_anomalies, self.predicted_anomalies, theta_p = self.theta_p, theta_r=self.theta_r, delta = 0)
 
 
     def prepare_data(self):

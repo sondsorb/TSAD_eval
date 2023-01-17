@@ -68,12 +68,22 @@ def discontinuity_graphs():
     All_metrics.remove(metrics.Range_PR)
     all_metrics_and_rffront = [*All_metrics, metrics.Range_PR, Range_PR_front]
     for metric in all_metrics_and_rffront:
-        metric_names.append(metric(5, [3,4], [3]).name)
+        if metric == metrics.TaF:
+            metric_names.append(metric(5, [3,4], [3], delta=10).name)
+        elif metric == metrics.time_tolerant:
+            metric_names.append(metric(5, [3,4], [3], d=10).name)
+        else:
+            metric_names.append(metric(5, [3,4], [3]).name)
         current_result = []
         for pred_mid in range(pred_length//2, ts_length-pred_length//2):
             gt = [[gt_start, gt_start+gt_length-1]]
             pred=[[pred_mid-pred_length//2, pred_mid+pred_length//2]]
-            current_result.append(metric(ts_length, gt, pred).get_score())
+            if metric == metrics.TaF:
+                current_result.append(metric(ts_length, gt, pred, delta=10).get_score())
+            elif metric == metrics.time_tolerant:
+                current_result.append(metric(ts_length, gt, pred, d=10).get_score())
+            else:
+                current_result.append(metric(ts_length, gt, pred).get_score())
         current_result = np.array(current_result)
         current_result = (current_result-min(current_result))/(max(current_result)-min(current_result))
         result[metric_names[-1]] = current_result

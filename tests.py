@@ -59,9 +59,11 @@ class Confusion_metrics_tester(unittest.TestCase):
         self.assertRaises(TypeError, f1_score, 3, 4, 5)
 
     def test_zerodivision(self):
-        self.assertRaises(ZeroDivisionError, recall, tp=0, fn=0)
-        self.assertRaises(ZeroDivisionError, precision, tp=0, fp=0)
+        #self.assertRaises(ZeroDivisionError, recall, tp=0, fn=0)
+        #self.assertRaises(ZeroDivisionError, precision, tp=0, fp=0)
         #self.assertRaises(ZeroDivisionError, f1_score, tp=0, fp=1, fn=1)
+        self.assertEqual(0, recall(tp=0, fn=0))
+        self.assertEqual(0, precision(tp=0, fp=0))
         self.assertEqual(0, f1_score(tp=0, fp=1, fn=1))
 
 
@@ -81,6 +83,38 @@ class Metrics_tester(unittest.TestCase):
 
         pa = PointAdjust(10, [1, 2, 3, 4, 5, 6, 7], [4])
         self.assertEqual(pa.get_score(), 1)
+
+        pa = PointAdjust(10, [1, 2, 3, 4, 5, 6, 7], [9])
+        self.assertEqual(pa.get_score(), 0)
+
+    def test_dtPA(self):
+        pa = DelayThresholdedPointAdjust(10, [1, 2, 3, 4, 9], [4, 5, 6], k=3)
+        self.assertEqual(pa.tp, 4)
+        self.assertEqual(pa.fp, 2)
+        self.assertEqual(pa.fn, 1)
+        
+        pa = DelayThresholdedPointAdjust(10, [1, 2, 3, 4, 9], [4, 5, 6], k=2)
+        self.assertEqual(pa.tp, 0)
+        self.assertEqual(pa.fp, 2)
+        self.assertEqual(pa.fn, 5)
+
+        pa = DelayThresholdedPointAdjust(10, [1, 2, 3, 4, 5, 6, 7], [4], k=3)
+        self.assertEqual(pa.get_score(), 1)
+
+        pa = DelayThresholdedPointAdjust(10, [1, 2, 3, 4, 5, 6, 7], [4], k=2)
+        self.assertEqual(pa.get_score(), 0)
+
+    def test_pakf(self):
+        pa = PointAdjustKPercent(10, [1, 2, 3, 4, 9], [4, 5, 6], k=0.5)
+        self.assertEqual(pa.tp, 1)
+        self.assertEqual(pa.fp, 2)
+        self.assertEqual(pa.fn, 4)
+        
+        pa = PointAdjustKPercent(10, [1, 2, 3, 4, 9], [4, 5, 6], k=0.1)
+        self.assertEqual(pa.tp, 4)
+        self.assertEqual(pa.fp, 2)
+        self.assertEqual(pa.fn, 1)
+
 
     def test_Segment(self):
         # s = Segmentwise_metrics(10, [[1,2],[4,4],[7,9]], [[0,6]])
@@ -162,6 +196,8 @@ class Metrics_tester(unittest.TestCase):
         self.assertEqual(t.get_score(), 0)
 
         t = TaF(10, [4,5,6], [7,8,9])
+        self.assertEqual(t.get_score(), 0)
+        t = TaF(10, [4,5,6], [7,8,9], delta=1)
         self.assertTrue(t.get_score() > 0)
 
         t1 = TaF(10, [4,5,8,9], [4,5])
