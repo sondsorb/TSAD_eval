@@ -6,6 +6,7 @@ from nabscore import Sweeper
 from affiliation.metrics import pr_from_events as affiliation_pr
 from prts import ts_recall, ts_precision
 import time_tolerant as ttol
+import latency_sparsity_aware
 from eTaPR_pkg import etapr, tapr
 from eTaPR_pkg.DataManage import File_IO, Range
 
@@ -183,7 +184,7 @@ class PointAdjust(DelayThresholdedPointAdjust):
 class PointAdjustKPercent(Pointwise_metrics):
     def __init__(self, *args, k=0.2):
         super().__init__(*args)
-        self.name = "\\pakf[1]{{{k}}}"
+        self.name = f"\\pakf[1]{{{k}}}"
         self.k=k
         self.adjust()
         self.set_confusion()
@@ -202,6 +203,17 @@ class PointAdjustKPercent(Pointwise_metrics):
                         break
 
         self._prediction._set_anomalies(np.sort(np.unique(adjusted_prediction)))
+
+class LatencySparsityAware(Binary_detection):
+    def __init__(self, *args, tw=2):
+        self.name = f"\\lsf[1]{{{tw}}}"
+        super().__init__(*args)
+        self.tw=tw
+
+    def get_score(self):
+        f1, p, r, FPR, self.tp,self.tn,self.fp,self.fn = latency_sparsity_aware.calc_twseq(self.get_predicted_anomalies_binary(), self.get_gt_anomalies_binary(), normal=0, threshold=0.5, tw=self.tw)
+        return f1
+
 
 
 class Segmentwise_metrics(original_PR_metric):

@@ -115,6 +115,18 @@ class Metrics_tester(unittest.TestCase):
         self.assertEqual(pa.fp, 2)
         self.assertEqual(pa.fn, 1)
 
+    def test_lspa(self):
+        pa = LatencySparsityAware(10, [2, 3, 4, 5, 9], [4, 7], tw=1)
+        self.assertAlmostEqual(pa.get_score(), f1_score(tp=pa.tp, fn=pa.fn, fp=pa.fp), 4)
+        self.assertEqual(pa.tp, 2)
+        self.assertEqual(pa.fp, 1)
+        self.assertEqual(pa.fn, 3)
+        
+        pa = LatencySparsityAware(10, [2, 3, 4, 5, 9], [4, 7], tw=2)
+        self.assertAlmostEqual(pa.get_score(), f1_score(tp=pa.tp, fn=pa.fn, fp=pa.fp), 4)
+        self.assertEqual(pa.tp, 1)
+        self.assertEqual(pa.fp, 1)
+        self.assertEqual(pa.fn, 2)
 
     def test_Segment(self):
         # s = Segmentwise_metrics(10, [[1,2],[4,4],[7,9]], [[0,6]])

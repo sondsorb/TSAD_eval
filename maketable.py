@@ -139,6 +139,7 @@ All_metrics = [
     metrics.PointAdjust,
     metrics.DelayThresholdedPointAdjust,
     metrics.PointAdjustKPercent,
+    metrics.LatencySparsityAware,
     metrics.Segmentwise_metrics,
     metrics.Composite_f,
     metrics.time_tolerant,
