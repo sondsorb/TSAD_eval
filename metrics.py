@@ -9,6 +9,7 @@ import time_tolerant as ttol
 import latency_sparsity_aware
 from eTaPR_pkg import etapr, tapr
 from eTaPR_pkg.DataManage import File_IO, Range
+from vus.analysis.robustness_eval import generate_curve
 
 
 def pointwise_to_segmentwise(pointwise):
@@ -553,6 +554,32 @@ class AUC_PR_pw(Nonbinary_detection):
         gt = self.get_gt_anomalies_binary()
         return average_precision_score(gt, self.get_anomaly_score())
 
+
+class VUS_ROC(Nonbinary_detection):
+    def __init__(self, *args, max_window=4):
+        super().__init__(*args)
+        self.name = f"\\vusroc{{{max_window}}}"
+        self.max_window = max_window
+
+    def get_score(self):
+        gt = np.array(self.get_gt_anomalies_binary())
+        score = np.array(self.get_anomaly_score())
+        _,_,_,_,_,_, roc, pr = generate_curve(gt, score, self.max_window)
+        return roc
+
+
+
+class VUS_PR(Nonbinary_detection):
+    def __init__(self, *args, max_window=4):
+        super().__init__(*args)
+        self.name = f"\\vuspr{{{max_window}}}"
+        self.max_window = max_window
+
+    def get_score(self):
+        gt = np.array(self.get_gt_anomalies_binary())
+        score = np.array(self.get_anomaly_score())
+        _,_,_,_,_,_, roc, pr = generate_curve(gt, score, self.max_window)
+        return pr
 
 class PatK_pw(Nonbinary_detection):
     def __init__(self, *args):

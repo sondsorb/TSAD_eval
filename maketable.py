@@ -314,10 +314,12 @@ def gaussian_smoothing(binary_prediction, length, std = 1):
     return smooth_score
 
 Nonbinary_metrics= [
-    metrics.AUC_ROC,
-    metrics.AUC_PR_pw,
     metrics.PatK_pw,
     metrics.Best_threshold_pw,
+    metrics.AUC_ROC,
+    metrics.AUC_PR_pw,
+    metrics.VUS_ROC,
+    metrics.VUS_PR,
 ]
 def nonbinary_labelling_problem():
     length = 30
@@ -399,32 +401,41 @@ def auc_roc_problem_3():
 
 
 if __name__ == "__main__":
-    print("PA problem")
-    PA_problem()
-    print("late_early_prediction")
-    late_early_prediction()
-    print("length_problem_1")
-    length_problem_1()
-    print("length_problem_2")
-    length_problem_2()
-    print("short_predictions")
-    short_predictions()
-    print("detection_over_covering")
-    detection_over_covering()
-    print("close_fp")
-    close_fp()
-    print("concise")
-    concise()
-    print("af_problem")
-    af_problem()
-    print("labelling_problem")
-    labelling_problem()
+    #print("PA problem")
+    #PA_problem()
+    #print("late_early_prediction")
+    #late_early_prediction()
+    #print("length_problem_1")
+    #length_problem_1()
+    #print("length_problem_2")
+    #length_problem_2()
+    #print("short_predictions")
+    #short_predictions()
+    #print("detection_over_covering")
+    #detection_over_covering()
+    #print("close_fp")
+    #close_fp()
+    #print("concise")
+    #concise()
+    #print("af_problem")
+    #af_problem()
+    #print("labelling_problem")
+    #labelling_problem()
 
     ##threshold_test()
-    #nonbinary_detection_over_covering()
-    #auc_roc_problem()
-    #nonbinary_length_problem_1()
-    #score_value_problem()
-    #nonbinary_close_fp()
-    #auc_roc_problem_2()
-    #auc_roc_problem_3()
+    print("nonbinary_labelling")
+    nonbinary_labelling_problem()
+    print("nonbinary_detection_over_covering")
+    nonbinary_detection_over_covering()
+    print("auc_roc_problem")
+    auc_roc_problem()
+    print("nonbinary_length_problem_1")
+    nonbinary_length_problem_1()
+    print("score_value_problem")
+    score_value_problem()
+    print("nonbinary_close_fp")
+    nonbinary_close_fp()
+    print("auc_roc_problem_2")
+    auc_roc_problem_2()
+    print("auc_roc_problem_3")
+    auc_roc_problem_3()

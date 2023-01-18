@@ -254,9 +254,9 @@ class Threshold_metric_tester(unittest.TestCase):
 
     def test_auc_roc(self):
         gt = [[2, 3]]
-
         anomaly_score = [1, 3, 2, 4]
         auc_roc = AUC_ROC(gt, anomaly_score)
+
         score = auc_roc.get_score()
         self.assertAlmostEqual(score, 0.75, 2)
 
@@ -269,6 +269,43 @@ class Threshold_metric_tester(unittest.TestCase):
         auc_roc = AUC_ROC(gt, anomaly_score)
         score = auc_roc.get_score()
         self.assertEqual(score, 0.5)
+
+    def test_vus_pr(self):
+        gt = [[0, 1]]
+        anomaly_score = [0,1,2,3,4,5,6,7,8,9]
+        vus_pr = VUS_PR(gt, anomaly_score, max_window=4)
+
+        score = vus_pr.get_score()
+        self.assertTrue(score <= 0.2)
+
+        gt = [[1,3]]
+        anomaly_score = [8,0,9,1,7,2,3,4,5,6]
+        vus_pr = VUS_PR(gt, anomaly_score, max_window=4)
+        score = vus_pr.get_score()
+        self.assertTrue(score > 0.5)
+        vus_pr = VUS_PR(gt, anomaly_score, max_window=0)
+        score = vus_pr.get_score()
+        self.assertTrue(score < 0.5)
+        
+
+
+    def test_vus_roc(self):
+        gt = [[0, 1]]
+        anomaly_score = [0,1,2,3,4,5,6,7,8,9]
+        vus= VUS_ROC(gt, anomaly_score, max_window=4)
+
+        score = vus.get_score()
+        self.assertTrue(score <= 0.1)
+
+        gt = [[1,3]]
+        anomaly_score = [8,0,9,1,7,2,3,4,5,6]
+        vus= VUS_ROC(gt, anomaly_score, max_window=4)
+        score = vus.get_score()
+        self.assertTrue(score > 0.4)
+        vus= VUS_ROC(gt, anomaly_score, max_window=0)
+        score = vus.get_score()
+        self.assertTrue(score < 0.4)
+
 
     def test_PatK(self):
         gt = [[2, 3]]

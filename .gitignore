@@ -3,3 +3,6 @@
 __pycache__
 *.swp
 *.pdf
+
+# could not find licence. see https://github.com/TheDatumOrg/VUS.
+vus* 
