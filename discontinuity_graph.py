@@ -70,7 +70,7 @@ def discontinuity_graphs():
     for metric in all_metrics_and_rffront:
         if metric == metrics.TaF:
             metric_names.append(metric(5, [3,4], [3], delta=10).name)
-        elif metric == metrics.time_tolerant:
+        elif metric == metrics.Time_Tolerant:
             metric_names.append(metric(5, [3,4], [3], d=10).name)
         else:
             metric_names.append(metric(5, [3,4], [3]).name)
@@ -80,7 +80,7 @@ def discontinuity_graphs():
             pred=[[pred_mid-pred_length//2, pred_mid+pred_length//2]]
             if metric == metrics.TaF:
                 current_result.append(metric(ts_length, gt, pred, delta=10).get_score())
-            elif metric == metrics.time_tolerant:
+            elif metric == metrics.Time_Tolerant:
                 current_result.append(metric(ts_length, gt, pred, d=10).get_score())
             else:
                 current_result.append(metric(ts_length, gt, pred).get_score())

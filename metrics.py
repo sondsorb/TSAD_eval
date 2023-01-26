@@ -430,7 +430,7 @@ class eTaF(Redefined_PR_metric):
     def precision(self):
         return self.result["eTaP"]
 
-class time_tolerant(Redefined_PR_metric): # Although ttol could be considered adjusted pointwise, it is implemented as redefined precision/recall
+class Time_Tolerant(Redefined_PR_metric): # Although ttol could be considered adjusted pointwise, it is implemented as redefined precision/recall
     def __init__(self, *args, d=2):
         super().__init__(*args)
         self.d = d
@@ -448,6 +448,26 @@ class time_tolerant(Redefined_PR_metric): # Although ttol could be considered ad
                 "E" : np.pad(self.get_gt_anomalies_binary(), self.d),
                 "d" : self.d
                 }
+
+class Temporal_Distance(Binary_detection):
+    def __init__(self, *args):
+        super().__init__(*args)
+        self.name = f"\\tempdist"
+
+    def get_score(self):
+        a = np.array(self.get_gt_anomalies_ptwise())
+        b = np.array(self.get_predicted_anomalies_ptwise())
+        return self._dist(a,b) + self._dist(b,a)
+
+    def _dist(self, a,b):
+        dist = 0
+        for pt in a:
+            if len(b)>0:
+                dist += min(abs(b-pt))
+            else:
+                dist+=self._length
+        return dist
+
 
 
 

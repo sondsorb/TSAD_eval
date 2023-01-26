@@ -65,7 +65,7 @@ class Table:
         self.add_fig(self.rows_added + 1)
 
         for i, entry in enumerate(self.content.results[self.rows_added]):
-            self.add_entry(entry, bold=self.is_max(entry, i))
+            self.add_entry(entry, bold=self._is_optimal(entry, i))
         self.end_row()
 
         self.rows_added += 1
@@ -83,8 +83,13 @@ class Table:
         else:
             self.string += f"&{entry}"
 
-    def is_max(self, entry, i):
+    def _is_optimal(self, entry, i):
+        if self._lower_the_better(i):
+            return entry == min(np.array(self.content.results)[:, i])
         return entry == max(np.array(self.content.results)[:, i])
+
+    def _lower_the_better(self,i):
+        return self.content.metrics[i] == f"\\tempdist"
 
     def end_row(self):
         self.add_line("\\\\")
@@ -142,12 +147,13 @@ All_metrics = [
     metrics.LatencySparsityAware,
     metrics.Segmentwise_metrics,
     metrics.Composite_f,
-    metrics.time_tolerant,
+    metrics.Time_Tolerant,
     metrics.Range_PR,
     metrics.TaF,
     metrics.eTaF,
     metrics.Affiliation,
     metrics.NAB_score,
+    metrics.Temporal_Distance
 ]
 
 def PA_problem():
@@ -199,7 +205,8 @@ def close_fp():
     metric_list = [
         # metrics.Pointwise_metrics, metrics.PointAdjust, metrics.Segmentwise_metrics, metrics.Composite_f, metrics.NAB_score,
         metrics.Affiliation,
-        metrics.time_tolerant,
+        metrics.Time_Tolerant,
+        metrics.Temporal_Distance
     ]
     length = 17
     create_table(anomalies, metric_list, length, scale=2)
@@ -212,9 +219,8 @@ def concise():
 def af_problem():
     anomalies = [[29, 30, 35, 36], [25, 26, 35, 36], [29, 30, 34, 35]]
     metric_list = [
-        # metrics.Pointwise_metrics, metrics.PointAdjust, metrics.Segmentwise_metrics, metrics.Composite_f, metrics.NAB_score,
-        # metrics.Range_PR,
-        metrics.Affiliation
+        metrics.Affiliation,
+        metrics.Temporal_Distance,
     ]
     length = 38
     create_table(anomalies, metric_list, length, scale=2)
@@ -401,26 +407,28 @@ def auc_roc_problem_3():
 
 
 if __name__ == "__main__":
+    af_problem()
+    quit()
     #print("PA problem")
     #PA_problem()
-    #print("late_early_prediction")
-    #late_early_prediction()
-    #print("length_problem_1")
-    #length_problem_1()
-    #print("length_problem_2")
-    #length_problem_2()
-    #print("short_predictions")
-    #short_predictions()
-    #print("detection_over_covering")
-    #detection_over_covering()
-    #print("close_fp")
-    #close_fp()
-    #print("concise")
-    #concise()
-    #print("af_problem")
-    #af_problem()
-    #print("labelling_problem")
-    #labelling_problem()
+    print("late_early_prediction")
+    late_early_prediction()
+    print("length_problem_1")
+    length_problem_1()
+    print("length_problem_2")
+    length_problem_2()
+    print("short_predictions")
+    short_predictions()
+    print("detection_over_covering")
+    detection_over_covering()
+    print("close_fp")
+    close_fp()
+    print("concise")
+    concise()
+    print("af_problem")
+    af_problem()
+    print("labelling_problem")
+    labelling_problem()
 
     ##threshold_test()
     print("nonbinary_labelling")

@@ -192,11 +192,11 @@ class Metrics_tester(unittest.TestCase):
         self.assertAlmostEqual(n.get_score(), -1 * 0.11 / 2)
 
     def test_ttol(self):
-        t = time_tolerant(10, [3,4,8], [1,2,3], d=2)
+        t = Time_Tolerant(10, [3,4,8], [1,2,3], d=2)
         self.assertAlmostEqual(t.recall(), 2/3)
         self.assertAlmostEqual(t.precision(), 1)
 
-        t = time_tolerant(10, [4,5], [6], d=1)
+        t = Time_Tolerant(10, [4,5], [6], d=1)
         self.assertAlmostEqual(t.recall(), 1/2)
         self.assertAlmostEqual(t.precision(), 1)
 
@@ -229,6 +229,22 @@ class Metrics_tester(unittest.TestCase):
         t1 = eTaF(10, [4,5,8,9], [4,5])
         t2 = eTaF(10, [4,5,8,9], [5,8])
         self.assertTrue(t1.get_score() < t2.get_score())
+
+    def test_temp_dist(self):
+        t = Temporal_Distance(10, [4,5,6], [4,5,6])
+        self.assertEqual(t.get_score(), 0)
+
+        t = Temporal_Distance(10, [4,6], [4,5,6])
+        self.assertEqual(t.get_score(), 1)
+
+        t = Temporal_Distance(10, [4], [4,5,6])
+        self.assertEqual(t.get_score(), 3)
+
+        t = Temporal_Distance(10, [4,5,6], [8])
+        self.assertEqual(t.get_score(), 11)
+
+        t = Temporal_Distance(10, [4,5,6], [])
+        self.assertEqual(t.get_score(), 30)
 
 class Threshold_metric_tester(unittest.TestCase):
 
