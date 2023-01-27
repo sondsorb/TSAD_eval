@@ -152,7 +152,7 @@ class Pointwise_metrics(original_PR_metric):
 class DelayThresholdedPointAdjust(Pointwise_metrics):
     def __init__(self, *args, k=2):
         super().__init__(*args)
-        self.name = "\\dtpaf[1]{{{k}}}"
+        self.name = f"\\dtpaf[1]{{{k}}}"
         self.k=k
         self.adjust()
         self.set_confusion()
@@ -613,6 +613,6 @@ class PatK_pw(Nonbinary_detection):
         threshold = np.sort(self.get_anomaly_score())[-k]
 
         pred = self.get_anomaly_score() >= threshold
-        assert sum(pred) == k, (k, pred)
+        assert sum(pred) >= k, (k, pred)
 
         return pred @ gt / k
