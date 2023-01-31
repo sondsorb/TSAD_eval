@@ -346,6 +346,11 @@ class Threshold_metric_tester(unittest.TestCase):
         score = patk.get_score()
         self.assertAlmostEqual(score, 2 / 3)
 
+        anomaly_score = [2,1,1,0]
+        patk = PatK_pw([0,1], anomaly_score)
+        score = patk.get_score()
+        self.assertAlmostEqual(score, 2/3)
+
         patk = PatK_pw([], [0,1,2,4])
         self.assertRaises(AssertionError, patk.get_score)
 

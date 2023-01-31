@@ -610,9 +610,10 @@ class PatK_pw(Nonbinary_detection):
         gt = self.get_gt_anomalies_binary()
 
         k = int(sum(gt))
+        assert k>0
         threshold = np.sort(self.get_anomaly_score())[-k]
 
         pred = self.get_anomaly_score() >= threshold
         assert sum(pred) >= k, (k, pred)
 
-        return pred @ gt / k
+        return pred @ gt / sum(pred)
