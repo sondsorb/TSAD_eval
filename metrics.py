@@ -475,7 +475,7 @@ class Temporal_Distance(Binary_detection):
 
 class NAB_score(Binary_detection):
     def __init__(self, *args):
-        self.name = "\\nab/100"
+        self.name = "\\nab"
         super().__init__(*args)
 
         self.sweeper = Sweeper(probationPercent=0, costMatrix={"tpWeight": 1, "fpWeight": 0.11, "fnWeight": 1})
@@ -496,7 +496,7 @@ class NAB_score(Binary_detection):
             assert scoresByThreshold[1].total == scoresByThreshold[1].tp + scoresByThreshold[1].tn
             perfect_score = scoresByThreshold[1].score
 
-            return (raw_score - null_score) / (perfect_score - null_score)
+            return (raw_score - null_score) / (perfect_score - null_score) * 100
         except ZeroDivisionError:
             return np.nan
 
