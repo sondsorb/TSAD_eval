@@ -189,7 +189,7 @@ def length_problem_2():
 
 
 def short_predictions():
-    anomalies = [[[14, 20]], [3, 16], [2, 3, 4, 5, 6, 7, 15, 16, 17, 18, 19, 20]]
+    anomalies = [[[14, 20]], [2, 15], [2, 3, 4, 5, 6, 7, 15, 16, 17, 18, 19, 20]]
     length = 22
     create_table(anomalies, All_metrics, length, scale=2)
 
@@ -386,10 +386,15 @@ def create_nonbinary_table(gt, anomaly_scores, metric_list, length, name=None, s
     print(table)
 
 def nonbinary_close_fp():
-
     length = 17
     gt = [12, 13, 14]
     anomaly_scores = [gaussian_smoothing(x, length, std=2) for x in [[8], [9], [10], [11]]]
+    create_nonbinary_table(gt, anomaly_scores, Nonbinary_metrics, length, scale=2)
+
+def nonbinary_nonsmooth_close_fp():
+    length = 17
+    gt = [12, 13, 14]
+    anomaly_scores = [random_anomaly_score(length, x, noise_amplitude=0, postsmoothing_kernel=[1]) for x in [[8], [9], [10], [11]]]
     create_nonbinary_table(gt, anomaly_scores, Nonbinary_metrics, length, scale=2)
 
 def auc_roc_problem_2():
@@ -407,22 +412,16 @@ def auc_roc_problem_3():
 def nonbinary_short_predictions():
     length = 22
     gt = [[14, 20]]
-    anomaly_scores = [random_anomaly_score(length, x, noise_amplitude=0) for x in [[3, 16], [2, 3, 4, 5, 6, 7, 15, 16, 17, 18, 19, 20]]]
+    anomaly_scores = [random_anomaly_score(length, x, noise_amplitude=0) for x in [[2, 15], [2, 3, 4, 5, 6, 7, 15, 16, 17, 18, 19, 20]]]
     create_nonbinary_table(gt,anomaly_scores, Nonbinary_metrics, length, scale=2)
 
 
 if __name__ == "__main__":
-    #nonbinary_short_predictions()
-    #nonbinary_detection_over_covering()
-    print("auc_roc_problem")
-    auc_roc_problem()
-    print("auc_roc_problem_2")
-    auc_roc_problem_2()
-    quit()
+
     #print("PA problem")
     #PA_problem()
-    print("late_early_prediction")
-    late_early_prediction()
+    #print("late_early_prediction")
+    #late_early_prediction()
     print("length_problem_1")
     length_problem_1()
     print("length_problem_2")
@@ -431,12 +430,12 @@ if __name__ == "__main__":
     short_predictions()
     print("detection_over_covering")
     detection_over_covering()
-    print("close_fp")
-    close_fp()
-    print("concise")
-    concise()
-    print("af_problem")
-    af_problem()
+    #print("close_fp")
+    #close_fp()
+    #print("concise")
+    #concise()
+    #print("af_problem")
+    #af_problem()
     print("labelling_problem")
     labelling_problem()
 
@@ -445,15 +444,19 @@ if __name__ == "__main__":
     nonbinary_labelling_problem()
     print("nonbinary_detection_over_covering")
     nonbinary_detection_over_covering()
-    print("auc_roc_problem")
-    auc_roc_problem()
+    #print("auc_roc_problem")
+    #auc_roc_problem()
     print("nonbinary_length_problem_1")
     nonbinary_length_problem_1()
     print("score_value_problem")
     score_value_problem()
     print("nonbinary_close_fp")
     nonbinary_close_fp()
+    print("nonbinary_nonsmooth_close_fp")
+    nonbinary_nonsmooth_close_fp()
     print("auc_roc_problem_2")
     auc_roc_problem_2()
     print("auc_roc_problem_3")
     auc_roc_problem_3()
+    print("nonbinary_short_predictions")
+    nonbinary_short_predictions()
