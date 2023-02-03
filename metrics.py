@@ -185,7 +185,7 @@ class PointAdjust(DelayThresholdedPointAdjust):
 class PointAdjustKPercent(Pointwise_metrics):
     def __init__(self, *args, k=0.2):
         super().__init__(*args)
-        self.name = f"\\pakf[1]{{{k}}}"
+        self.name = f"\\pakf[1]{{{int(k*100)}}}"
         self.k=k
         self.adjust()
         self.set_confusion()

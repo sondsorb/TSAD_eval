@@ -155,6 +155,8 @@ All_metrics = [
     metrics.NAB_score,
     metrics.Temporal_Distance
 ]
+All_metrics_except_nab = list(All_metrics)
+All_metrics_except_nab.remove(metrics.NAB_score) 
 
 def PA_problem():
     anomalies = [[[25, 39]], [12, 36]]
@@ -185,7 +187,7 @@ def length_problem_1():
 def length_problem_2():
     anomalies = [[2, 4, 6, 15, 16, 17, 18, 19], [2, 3, 4, 5, 6], [2, 15, 16, 17, 18, 19]]
     length = 22
-    create_table(anomalies, All_metrics, length, scale=2)
+    create_table(anomalies, All_metrics_except_nab, length, scale=2)
 
 
 def short_predictions():
@@ -244,11 +246,11 @@ def labelling_problem():
     anomalies = [[[18, 23]], [18, 24]]
     length = 30
 
-    create_table(anomalies, All_metrics, length, scale=2)
+    create_table(anomalies, All_metrics_except_nab, length, scale=2)
 
     anomalies = [[18, 24], [[18, 23]]]
 
-    create_table(anomalies, All_metrics, length, scale=2)
+    create_table(anomalies, All_metrics_except_nab, length, scale=2)
 
 
 ##############################################
@@ -327,6 +329,11 @@ Nonbinary_metrics= [
     metrics.VUS_ROC,
     metrics.VUS_PR,
 ]
+ROC_metrics = [
+    metrics.AUC_ROC,
+    metrics.VUS_ROC,
+]
+
 def nonbinary_labelling_problem():
     length = 30
     anomaly_scores = [random_anomaly_score(length,[18, 24], postsmoothing_kernel=[1])]
@@ -365,7 +372,7 @@ def score_value_problem():
     anomaly_scores = 1/(1+abs(x-10)), (10.1-abs(x-10))**0.5/3
     create_nonbinary_table(gt, anomaly_scores, Nonbinary_metrics, length, scale=2)
 
-def create_nonbinary_table(gt, anomaly_scores, metric_list, length, name=None, scale=None):
+def create_nonbinary_table(gt, anomaly_scores, metric_list, length, name=None, scale=None, AUC_TEST=False):
     results = []
     for anomaly_score in anomaly_scores: 
         results_this_line = []
@@ -383,6 +390,8 @@ def create_nonbinary_table(gt, anomaly_scores, metric_list, length, name=None, s
 
     table = Nonbinary_Table(anomaly_scores, table_content, name, scale)
     table.write()
+    if AUC_TEST: # left alignment of variable length anomaly scores
+        table.string = table.string.replace("ccc", "lcc")
     print(table)
 
 def nonbinary_close_fp():
@@ -401,13 +410,13 @@ def auc_roc_problem_2():
     length = 64
     gt = [[8,12]]
     anomaly_scores = [random_anomaly_score(length, pred, noise_amplitude=0, postsmoothing_kernel=[1]) for length in [32,64] for pred in [[8,9,10,11],[[3,13]]]]
-    create_nonbinary_table(gt, anomaly_scores, Nonbinary_metrics, length, scale=0.8)
+    create_nonbinary_table(gt, anomaly_scores, ROC_metrics, length, scale=0.8, AUC_TEST=True)
 
 def auc_roc_problem_3():
     length = 128
     gt = [[10,14]]
     anomaly_scores = [gaussian_smoothing(pred, length, std=10) for length in [16,32,64,128] for pred in [[0]]]
-    create_nonbinary_table(gt, anomaly_scores, Nonbinary_metrics, length, scale=0.8)
+    create_nonbinary_table(gt, anomaly_scores, ROC_metrics, length, scale=0.8, AUC_TEST=True)
 
 def nonbinary_short_predictions():
     length = 22
@@ -418,45 +427,78 @@ def nonbinary_short_predictions():
 
 if __name__ == "__main__":
 
+    #length_problem_1()
+    #short_predictions()
+    #detection_over_covering()
+    quit()
     #print("PA problem")
     #PA_problem()
     #print("late_early_prediction")
     #late_early_prediction()
-    print("length_problem_1")
+
+    print("\\newcommand{\\showLengthProblemI}[0]{")
     length_problem_1()
-    print("length_problem_2")
+    print("}")
+
+    print("\\newcommand{\\showLengthProblemII}[0]{")
     length_problem_2()
-    print("short_predictions")
+    print("}")
+
+    print("\\newcommand{\\showShortPrecitions}[0]{")
     short_predictions()
-    print("detection_over_covering")
+    print("}")
+
+    print("\\newcommand{\\showDetectionOverCovering}[0]{")
     detection_over_covering()
+    print("}")
+
     #print("close_fp")
     #close_fp()
     #print("concise")
     #concise()
     #print("af_problem")
     #af_problem()
-    print("labelling_problem")
-    labelling_problem()
 
-    ##threshold_test()
-    print("nonbinary_labelling")
-    nonbinary_labelling_problem()
-    print("nonbinary_detection_over_covering")
+    print("\\newcommand{\\showLabellingProblem}[0]{")
+    labelling_problem()
+    print("}")
+
+    ###threshold_test()
+    #print("\\newcommand{\\showLabelling}[0]{")
+    #nonbinary_labelling_problem()
+    #print("}")
+
+    print("\\newcommand{\\showNonbinaryDetectionOverCovering}[0]{")
     nonbinary_detection_over_covering()
+    print("}")
+
     #print("auc_roc_problem")
     #auc_roc_problem()
-    print("nonbinary_length_problem_1")
+    print("\\newcommand{\\showNonbinaryLengthI}[0]{")
     nonbinary_length_problem_1()
-    print("score_value_problem")
+    print("}")
+
+    print("\\newcommand{\\showScoreValueProblem}[0]{")
     score_value_problem()
-    print("nonbinary_close_fp")
+    print("}")
+
+    print("\\newcommand{\\showNonbinaryCloseFp}[0]{")
     nonbinary_close_fp()
-    print("nonbinary_nonsmooth_close_fp")
+    print("}")
+
+    print("\\newcommand{\\showNonbinaryNonsmoothCloseFp}[0]{")
     nonbinary_nonsmooth_close_fp()
-    print("auc_roc_problem_2")
+    print("}")
+
+    print("\\newcommand{\\showAucRocProblemII}[0]{")
     auc_roc_problem_2()
-    print("auc_roc_problem_3")
+    print("}")
+
+    print("\\newcommand{\\showAucRocProblemIII}[0]{")
     auc_roc_problem_3()
-    print("nonbinary_short_predictions")
+    print("}")
+
+    print("\\newcommand{\\showNonbinaryShortPredictions}[0]{")
     nonbinary_short_predictions()
+    print("}")
+

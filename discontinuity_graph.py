@@ -48,7 +48,7 @@ class Discontinuity_table(Table):
         )
         self.add_line("\\coordinate (now) at (\\i,\\a) {};")
         self.add_line("  \\ifthenelse{\\equal{\\i}{0.0}}{}{")
-        self.add_line("  \\draw[-, teal] (prev) -- (now);")
+        self.add_line("  \\draw[-, teal, thick] (prev) -- (now);")
         self.add_line("  }")
         self.add_line("  \\coordinate (prev) at (\\i,\\a) {};")
         self.add_line("}")

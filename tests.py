@@ -191,6 +191,7 @@ class Metrics_tester(unittest.TestCase):
         n = NAB_score(10, [[3, 6]], [1])
         self.assertAlmostEqual(n.get_score(), -100 * 0.11 / 2)
 
+
     def test_ttol(self):
         t = Time_Tolerant(10, [3,4,8], [1,2,3], d=2)
         self.assertAlmostEqual(t.recall(), 2/3)
