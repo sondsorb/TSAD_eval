@@ -44,15 +44,24 @@ class Table:
 
     def add_all_content(self):
 
-        self.add_hline()
+        self.add_hline("top")
         self.add_top_row()
-        self.add_hline()
+        self.add_hline("mid")
         for i in range(self.n_rows):
             self.add_next_row()
-        self.add_hline()
+        self.add_hline("bottom")
 
-    def add_hline(self):
-        self.add_line("\\hline")
+    def add_hline(self, linetype="h"):
+        if linetype=="h":
+            self.add_line("\\hline")
+        elif linetype=="top":
+            self.add_line("\\toprule")
+        elif linetype=="mid":
+            self.add_line("\\midrule")
+        elif linetype=="bottom":
+            self.add_line("\\bottomrule")
+        else:
+            raise ValueError
 
     def add_top_row(self):
         self.add_fig(0)
@@ -264,6 +273,7 @@ class Nonbinary_Table(Table):
         super().__init__(*args)
         self.x_factor = 1 / 10
         self.y_factor = 1 / 5 * 2 / self.scale
+        self.y_shift = -0.1 / self.scale
 
     def add_fig(self, number):
         if number > 0:
@@ -279,7 +289,7 @@ class Nonbinary_Table(Table):
         )
         self.add_line("\\foreach \\i/\\a in")
         self.add_line(
-            str([(round(i * self.x_factor,3), round(a * self.y_factor,3)) for i, a in enumerate(self.anomaly_scores[number - 1])])
+            str([(round(i * self.x_factor,3), round(a * self.y_factor + self.y_shift,3)) for i, a in enumerate(self.anomaly_scores[number - 1])])
             .replace(",", "/")
             .replace(")/", ",")
             .replace("(", "")
@@ -427,14 +437,6 @@ def nonbinary_short_predictions():
 
 if __name__ == "__main__":
 
-    #length_problem_1()
-    #short_predictions()
-    #detection_over_covering()
-    quit()
-    #print("PA problem")
-    #PA_problem()
-    #print("late_early_prediction")
-    #late_early_prediction()
 
     print("\\newcommand{\\showLengthProblemI}[0]{")
     length_problem_1()
@@ -451,13 +453,6 @@ if __name__ == "__main__":
     print("\\newcommand{\\showDetectionOverCovering}[0]{")
     detection_over_covering()
     print("}")
-
-    #print("close_fp")
-    #close_fp()
-    #print("concise")
-    #concise()
-    #print("af_problem")
-    #af_problem()
 
     print("\\newcommand{\\showLabellingProblem}[0]{")
     labelling_problem()

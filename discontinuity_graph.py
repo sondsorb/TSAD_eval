@@ -12,6 +12,7 @@ class Discontinuity_table(Table):
         super().__init__(Table_content([],[],[]), scale=2)
         self.x_factor = 1 / 20 * self.scale
         self.y_factor = 1 / 2
+        self.y_shift = -0.2
 
         self.row_length = 2
         self.n_rows = len(metric_names)
@@ -34,11 +35,11 @@ class Discontinuity_table(Table):
             f"\\begin{{tikzpicture}}[baseline=-\\the\\dimexpr\\fontdimen22\\textfont2\\relax]"
         )
         for x in self.marks:
-            self.add_line(f"\draw[-, gray] ({x*self.x_factor},0) -- ({x*self.x_factor},{0.2*self.y_factor});")
-        self.add_line(f"\draw[-, gray] (0,0) -- ({self.x_factor*(len(self.results[self.metric_names[number-1]])-1)},0);")
+            self.add_line(f"\draw[-, gray] ({x*self.x_factor},{self.y_shift}) -- ({x*self.x_factor},{0.2*self.y_factor + self.y_shift});")
+        self.add_line(f"\draw[-, gray] (0,{self.y_shift}) -- ({self.x_factor*(len(self.results[self.metric_names[number-1]])-1)},{self.y_shift});")
         self.add_line("\\foreach \\i/\\a in")
         self.add_line(
-            str([(round(i * self.x_factor,3), round(a * self.y_factor,3)) for i, a in enumerate(self.results[self.metric_names[number - 1]])])
+            str([(round(i * self.x_factor,3), round(a * self.y_factor + self.y_shift,3)) for i, a in enumerate(self.results[self.metric_names[number - 1]])])
             .replace(",", "/")
             .replace(")/", ",")
             .replace("(", "")
