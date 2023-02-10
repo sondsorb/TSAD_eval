@@ -418,8 +418,8 @@ def nonbinary_nonsmooth_close_fp():
 
 def auc_roc_problem_2():
     length = 64
-    gt = [[8,12]]
-    anomaly_scores = [random_anomaly_score(length, pred, noise_amplitude=0, postsmoothing_kernel=[1]) for length in [32,64] for pred in [[8,9,10,11],[[3,13]]]]
+    gt = [[10,14]]
+    anomaly_scores = [random_anomaly_score(length, pred, noise_amplitude=0, postsmoothing_kernel=[1]) for length in [32,64] for pred in [[10,11,12,13],[[3,15]]]]
     create_nonbinary_table(gt, anomaly_scores, ROC_metrics, length, scale=0.8, AUC_TEST=True)
 
 def auc_roc_problem_3():
@@ -437,6 +437,8 @@ def nonbinary_short_predictions():
 
 if __name__ == "__main__":
 
+    auc_roc_problem_2()
+    quit()
 
     print("\\newcommand{\\showLengthProblemI}[0]{")
     length_problem_1()
