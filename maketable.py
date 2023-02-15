@@ -168,9 +168,9 @@ All_metrics_except_nab = list(All_metrics)
 All_metrics_except_nab.remove(metrics.NAB_score) 
 
 def PA_problem():
-    anomalies = [[[25, 39]], [12, 36]]
+    anomalies = [[[17, 26]], [8, 24]]
     metric_list = [metrics.Pointwise_metrics, metrics.PointAdjust]
-    length = 48
+    length = 32
     name = "pa_problem.txt"
 
     create_table(anomalies, metric_list, length, name, scale=2)
@@ -355,10 +355,10 @@ def nonbinary_labelling_problem():
     create_nonbinary_table(gt, anomaly_scores, Nonbinary_metrics, length, scale=2)
 
 def nonbinary_detection_over_covering():
-    gt = [[5,12], [35,42]]
-    length = 45
-    anomaly_scores = [random_anomaly_score(length, x, noise_amplitude=0, postsmoothing_kernel=[1]) for x in [[[5,12]], [5,35]] ]
-    create_nonbinary_table(gt, anomaly_scores, Nonbinary_metrics, length, scale=1.5)
+    gt = [[5,12], [20,27]]
+    length = 28
+    anomaly_scores = [random_anomaly_score(length, x, noise_amplitude=0, postsmoothing_kernel=[1]) for x in [[[5,12]], [5,20]] ]
+    create_nonbinary_table(gt, anomaly_scores, Nonbinary_metrics, length, scale=1.2)
 
 def auc_roc_problem():
     gt = [14,15,16]
@@ -372,7 +372,7 @@ def nonbinary_length_problem_1():
     gt = [[3,4], [11,12], [19, 25]]
     length = 27
     anomaly_scores = [random_anomaly_score(length, x, noise_amplitude=0) for x in [[[19,25]], [3,4,11,12]] ]
-    create_nonbinary_table(gt, anomaly_scores, Nonbinary_metrics, length, scale=2)
+    create_nonbinary_table(gt, anomaly_scores, Nonbinary_metrics, length, scale=1.2)
 
 def score_value_problem():
 
@@ -380,7 +380,7 @@ def score_value_problem():
     length = 21
     x = np.arange(21)
     anomaly_scores = 1/(1+abs(x-10)), (10.1-abs(x-10))**0.5/3
-    create_nonbinary_table(gt, anomaly_scores, Nonbinary_metrics, length, scale=2)
+    create_nonbinary_table(gt, anomaly_scores, Nonbinary_metrics, length, scale=1.5)
 
 def create_nonbinary_table(gt, anomaly_scores, metric_list, length, name=None, scale=None, AUC_TEST=False):
     results = []
@@ -420,25 +420,22 @@ def auc_roc_problem_2():
     length = 64
     gt = [[10,14]]
     anomaly_scores = [random_anomaly_score(length, pred, noise_amplitude=0, postsmoothing_kernel=[1]) for length in [32,64] for pred in [[10,11,12,13],[[3,15]]]]
-    create_nonbinary_table(gt, anomaly_scores, ROC_metrics, length, scale=0.8, AUC_TEST=True)
+    create_nonbinary_table(gt, anomaly_scores, ROC_metrics, length, scale=1.2, AUC_TEST=True)
 
 def auc_roc_problem_3():
-    length = 128
-    gt = [[10,14]]
-    anomaly_scores = [gaussian_smoothing(pred, length, std=10) for length in [16,32,64,128] for pred in [[0]]]
-    create_nonbinary_table(gt, anomaly_scores, ROC_metrics, length, scale=0.8, AUC_TEST=True)
+    length = 64
+    gt = [[4,7]]
+    anomaly_scores = [gaussian_smoothing(pred, length, std=10) for length in [8,16,32,64] for pred in [[0]]]
+    create_nonbinary_table(gt, anomaly_scores, ROC_metrics, length, scale=1.2, AUC_TEST=True)
 
 def nonbinary_short_predictions():
     length = 22
     gt = [[14, 20]]
     anomaly_scores = [random_anomaly_score(length, x, noise_amplitude=0) for x in [[2, 15], [2, 3, 4, 5, 6, 7, 15, 16, 17, 18, 19, 20]]]
-    create_nonbinary_table(gt,anomaly_scores, Nonbinary_metrics, length, scale=2)
+    create_nonbinary_table(gt,anomaly_scores, Nonbinary_metrics, length, scale=1.5)
 
 
 if __name__ == "__main__":
-
-    auc_roc_problem_2()
-    quit()
 
     print("\\newcommand{\\showLengthProblemI}[0]{")
     length_problem_1()
@@ -460,10 +457,10 @@ if __name__ == "__main__":
     labelling_problem()
     print("}")
 
-    ###threshold_test()
-    #print("\\newcommand{\\showLabelling}[0]{")
-    #nonbinary_labelling_problem()
-    #print("}")
+    ##threshold_test()
+    print("\\newcommand{\\showLabelling}[0]{")
+    nonbinary_labelling_problem()
+    print("}")
 
     print("\\newcommand{\\showNonbinaryDetectionOverCovering}[0]{")
     nonbinary_detection_over_covering()
