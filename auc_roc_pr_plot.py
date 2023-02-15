@@ -155,10 +155,6 @@ class Two_1d_normal_distributions:
     def plot_roc_pr_lines(self, ax):
         ax.plot(self.fpr, np.array(self.recall) + 1, self.color, zorder=1)
         ax.plot(np.array(self.precision) * (-1) + 1, self.recall, self.color, zorder=1)
-        # for i in range(len(self.x_fpr)):
-        #    plt.plot([self.x_fpr[i], 1-self.x_precision[i]], [self.x_recall[i]+1,self.x_recall[i]], marker="x", color=self.P_color, zorder=1, alpha=0.3)
-        # for i in range(len(self.o_fpr)):
-        #    plt.plot([self.o_fpr[i], 1-self.o_precision[i]], [self.o_recall[i]+1,self.o_recall[i]], marker="o", color=self.N_color, zorder=1, alpha=0.3)
         for i in range(0, len(self.recall), 5):
             ax.plot(
                 [self.fpr[i], 1 - self.precision[i]],
@@ -222,28 +218,10 @@ class Two_1d_normal_distributions:
         axes[1].plot([threshold, threshold], [ymin - 1, ymax + 1], "--", color="gray", lw=1)
         axes[1].set_ylim([ymin, ymax])
 
-        # if plot_os:
-        #    ax.plot(self.o_threshold, np.ones(self.os)*(-0.01), "o", fillstyle="none", color=self.color)
-        # if plot_xs:
-        #    ax.plot(self.x_threshold, np.ones(self.xs)*(-0.02), "x", color=self.color)
-        # if plot_fs:
-        #    #ax.plot(list(self.max_f_thresholds.values()),np.ones(len(self.betas))*(-0.02), "|", linestyle= "None", zorder=2, color="k")#self.color)
-        #    #for i, beta in enumerate(self.betas):
-        #    #    ax.text(self.max_f_thresholds[beta]-0.07,-0.025+0.01*(-1)**i, f"$1/{int(1/beta)}$" if beta<1 else f"${beta}$")
-        #    ax.plot(list(self.max_f_thresholds.values()),np.ones(len(self.betas))*(0), "|", linestyle= "None", zorder=2, color="k")#self.color)
-        #    ax.plot(list(self.max_f_thresholds.values())[1::2],np.ones(len(self.betas[1::2]))*(-0.005), "|", linestyle= "None", zorder=2, color="k")#self.color)
-        #    for beta in self.betas[1::2]:
-        #        ax.text(self.max_f_thresholds[beta],-0.025, f"$1/{int(1/beta)}$" if beta<1 else f"${beta}$", horizontalalignment='center')
-        # ax.legend()
-        # axes[0].set_xlabel("Anomaly score")
-        # ax.grid()
 
     def plot_cdf(self, ax, start=-6, stop=8, steps=1001, normalize=True):
         grid = np.linspace(start, stop, steps)
 
-        # ax.plot(grid, norm.pdf(grid, loc=1, scale=2))
-        # ax.plot(grid, norm.pdf(grid, loc=2, scale=3))
-        # ax.plot(grid, norm.pdf(grid, loc=3, scale=1))
         ax.plot(
             grid,
             norm.cdf(grid, loc=self.N_mu, scale=self.N_std) * (1 if normalize else self.N_ampl),
@@ -259,6 +237,9 @@ class Two_1d_normal_distributions:
 
 
 if __name__ == "__main__":
+
+    # Make detector distributions
+
     t1 = Two_1d_normal_distributions(
         1, 49, 1.8, -1, 2, 1, color="mediumblue", betas=(1 / 8, 1 / 4, 1 / 2, 1, 2, 4, 8, 16)
     )
@@ -269,47 +250,10 @@ if __name__ == "__main__":
     t1.make(steps=1001, delta=0.1)
     t2.make(steps=1001, delta=0.1)
 
-    # Local visualtization:
-
-    # fig, axes = plt.subplots(2, 1)
-    # t1.plot_roc_pr(axes[0], axes[1])
-    # t2.plot_roc_pr(axes[0], axes[1])
-    # plt.show()
-
-    # fig, axes = plt.subplots(1,2)
-    # t1.plot_distributions(axes[0], plot_xs=False, plot_os=False,plot_fs=True)
-    # t2.plot_distributions(axes[1], plot_xs=False, plot_os=False,plot_fs=True)
-    # plt.show()
-
-    # quit()
-
-    # Save plots:
+    
+    #  Make roc and pr plots
 
     figsize = (4, 4)
-
-    # plt.figure(figsize=figsize)
-    # t1.plot_roc_pr_lines(plt)
-    # plt.tight_layout()
-    # plt.savefig("lines_1.pdf")
-    # plt.show()
-    # plt.close("all")
-    # plt.figure(figsize=figsize)
-    # t2.plot_roc_pr_lines(plt)
-    # plt.tight_layout()
-    # plt.savefig("lines_2.pdf")
-    # plt.show()
-    # plt.close("all")
-
-    # roc_fig, roc_ax = plt.subplots(figsize=figsize)
-    # plt.tight_layout()
-    # pr_fig, pr_ax = plt.subplots(figsize=figsize)
-    # plt.tight_layout()
-    # t1.plot_roc_pr(roc_ax, pr_ax)
-    # t2.plot_roc_pr(roc_ax, pr_ax)
-    # roc_fig.savefig("auc_roc.pdf")
-    # pr_fig.savefig("auc_pr.pdf")
-    # plt.show()
-    # plt.close("all")
 
     roc_fig, roc_ax = plt.subplots(figsize=figsize)
     pr_fig, pr_ax = plt.subplots(figsize=figsize)
@@ -321,24 +265,9 @@ if __name__ == "__main__":
     pr_fig.savefig("auc_pr_f.pdf")
     plt.show()
     plt.close("all")
-    quit()
 
-    # figsize=(5,3)
 
-    # fig, axes = plt.subplots(2,figsize=figsize, sharex=True)
-    # t1.plot_distributions(axes, plot_xs=False, plot_os=False,plot_fs=True)
-    # plt.tight_layout()
-    # plt.subplots_adjust(hspace=.0)
-    # plt.savefig("auc_distributions_1.pdf")
-    # plt.show()
-    # plt.close("all")
-
-    # figs, axes = plt.subplots(2,figsize=figsize, sharex=True)
-    # t2.plot_distributions(axes, stop=5, plot_xs=False, plot_os=False,plot_fs=True)
-    # plt.tight_layout()
-    # plt.subplots_adjust(hspace=.0)
-    # plt.savefig("auc_distributions_2.pdf")
-    # plt.show()
+    # Make distribution plots
 
     figsize = (5, 3)
 
@@ -358,7 +287,6 @@ if __name__ == "__main__":
         shadowaxes = fig.add_subplot(111, xticks=[], yticks=[], frame_on=False)
         shadowaxes.set_ylabel("Probability density", labelpad=25)
         fig.tight_layout()
-        # axes[0][0].set_ylabel("Normal \nsamples\n\n")
         axes[0][0].set_ylabel("Normal\nsamples", labelpad=25)
         axes[1][0].set_ylabel("Anomalous\nsamples", labelpad=25)
 

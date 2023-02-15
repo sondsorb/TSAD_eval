@@ -102,19 +102,6 @@ class Table:
         self.add_line("\\\\")
 
 
-def distance_problem():
-    figure_contents = []
-
-    anomalies = [[[[270, 275], [290, 295]]], [[[240, 245], [290, 295]]], [[[265, 270], [285, 290]]]]
-    metrics = ["AF"]
-    results = [[0.7], [0.1]]  # NOTE not correct!
-
-    figure_contents = [Figure_content(None, 300, anomaly) for anomaly in anomalies]
-    table_content = Table_content(figure_contents, metrics, results)
-
-    table = Table(table_content)
-    table.write()
-
 
 def create_table(anomalies, metric_list, length, name=None, scale=None):
     results = [
@@ -182,14 +169,12 @@ class Range_PR_front(metrics.Range_PR):
 
 def late_early_prediction():
     early_metrics = [metrics.PointAdjust, Range_PR_front, metrics.NAB_score]
-    # anomalies = [[[5, 9], [15, 19]], [8,9], [7,8], [6,7], [5,6], [8,9,18,19],[7,8,17,18],[6,7,16,17], [5,6,15,16]]
     anomalies = [[[5, 9], [15, 19]], [9], [7], [5], [9, 19], [7, 17], [5, 15]]
     length = 22
     create_table(anomalies, early_metrics, length, scale=2)
 
 
 def length_problem_1():
-    # anomalies = [[[5,6], [15, 19]], [15,16,17,18,19], [5,6,15,16]]
     anomalies = [[[3, 4], [11, 12], [19, 23]], [[19, 23]], [3, 4, 11, 12]]
     length = 24
     create_table(anomalies, All_metrics, length, scale=2)
@@ -216,7 +201,6 @@ def detection_over_covering():
 def close_fp():
     anomalies = [[12, 13, 14, 15], [7, 8], [8, 9], [9, 10], [10, 11]]
     metric_list = [
-        # metrics.Pointwise_metrics, metrics.PointAdjust, metrics.Segmentwise_metrics, metrics.Composite_f, metrics.NAB_score,
         metrics.Affiliation,
         metrics.Time_Tolerant,
         metrics.Temporal_Distance,
@@ -239,21 +223,6 @@ def af_problem():
     ]
     length = 38
     create_table(anomalies, metric_list, length, scale=2)
-
-
-# def labelling_problem():
-#    anomalies = [[[6,7],[30,39]], [[15,16],[30,33]],[6,7,30,40], [[6,7],[15,16],[30,39]]]
-#    metric_list = [
-#            metrics.Pointwise_metrics, metrics.PointAdjust, metrics.Segmentwise_metrics, metrics.Composite_f, #metrics.NAB_score,
-#            metrics.Range_PR,
-#            metrics.Affiliation]
-#    length = 50
-#
-#    create_table(anomalies, metric_list, length, scale=2)
-#
-#    anomalies[0] = [6,7,30,40]
-#
-#    create_table(anomalies, metric_list, length, scale=2)
 
 
 def labelling_problem():
@@ -354,6 +323,26 @@ def gaussian_smoothing(binary_prediction, length, std=1):
     return smooth_score
 
 
+def create_nonbinary_table(gt, anomaly_scores, metric_list, length, name=None, scale=None, AUC_TEST=False):
+    results = []
+    for anomaly_score in anomaly_scores:
+        results_this_line = []
+        metric_names = []
+        for metric in metric_list:
+            this_metric = metric(gt, anomaly_score)
+            results_this_line.append(this_metric.get_score())
+            metric_names.append(this_metric.name)
+        results.append(results_this_line)
+
+    figure_contents = make_figure_content(length, [gt])
+    table_content = Table_content(figure_contents, metric_names, results)
+
+    table = Nonbinary_Table(anomaly_scores, table_content, name, scale)
+    table.write()
+    if AUC_TEST:  # left alignment of variable length anomaly scores
+        table.string = table.string.replace("ccc", "lcc")
+    print(table)
+
 Nonbinary_metrics = [
     metrics.PatK_pw,
     metrics.Best_threshold_pw,
@@ -410,27 +399,6 @@ def score_value_problem():
     x = np.arange(21)
     anomaly_scores = 1 / (1 + abs(x - 10)), (10.1 - abs(x - 10)) ** 0.5 / 3
     create_nonbinary_table(gt, anomaly_scores, Nonbinary_metrics, length, scale=1.5)
-
-
-def create_nonbinary_table(gt, anomaly_scores, metric_list, length, name=None, scale=None, AUC_TEST=False):
-    results = []
-    for anomaly_score in anomaly_scores:
-        results_this_line = []
-        metric_names = []
-        for metric in metric_list:
-            this_metric = metric(gt, anomaly_score)
-            results_this_line.append(this_metric.get_score())
-            metric_names.append(this_metric.name)
-        results.append(results_this_line)
-
-    figure_contents = make_figure_content(length, [gt])
-    table_content = Table_content(figure_contents, metric_names, results)
-
-    table = Nonbinary_Table(anomaly_scores, table_content, name, scale)
-    table.write()
-    if AUC_TEST:  # left alignment of variable length anomaly scores
-        table.string = table.string.replace("ccc", "lcc")
-    print(table)
 
 
 def nonbinary_close_fp():
@@ -507,8 +475,6 @@ if __name__ == "__main__":
     nonbinary_detection_over_covering()
     print("}")
 
-    # print("auc_roc_problem")
-    # auc_roc_problem()
     print("\\newcommand{\\showNonbinaryLengthI}[0]{")
     nonbinary_length_problem_1()
     print("}")
