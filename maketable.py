@@ -7,7 +7,6 @@ import metrics
 
 @dataclass
 class Table_content:
-
     figure_contents: [Figure_content]
     metrics: [str]
     results: []
@@ -43,7 +42,6 @@ class Table:
         return self.string
 
     def add_all_content(self):
-
         self.add_hline("top")
         self.add_top_row()
         self.add_hline("mid")
@@ -52,13 +50,13 @@ class Table:
         self.add_hline("bottom")
 
     def add_hline(self, linetype="h"):
-        if linetype=="h":
+        if linetype == "h":
             self.add_line("\\hline")
-        elif linetype=="top":
+        elif linetype == "top":
             self.add_line("\\toprule")
-        elif linetype=="mid":
+        elif linetype == "mid":
             self.add_line("\\midrule")
-        elif linetype=="bottom":
+        elif linetype == "bottom":
             self.add_line("\\bottomrule")
         else:
             raise ValueError
@@ -97,7 +95,7 @@ class Table:
             return entry == min(np.array(self.content.results)[:, i])
         return entry == max(np.array(self.content.results)[:, i])
 
-    def _lower_the_better(self,i):
+    def _lower_the_better(self, i):
         return self.content.metrics[i] == f"\\tempdist"
 
     def end_row(self):
@@ -162,10 +160,11 @@ All_metrics = [
     metrics.eTaF,
     metrics.Affiliation,
     metrics.NAB_score,
-    metrics.Temporal_Distance
+    metrics.Temporal_Distance,
 ]
 All_metrics_except_nab = list(All_metrics)
-All_metrics_except_nab.remove(metrics.NAB_score) 
+All_metrics_except_nab.remove(metrics.NAB_score)
+
 
 def PA_problem():
     anomalies = [[[17, 26]], [8, 24]]
@@ -179,12 +178,15 @@ def PA_problem():
 class Range_PR_front(metrics.Range_PR):
     def __init__(self, *args):
         super().__init__(*args, bias="front", alpha=0)
+
+
 def late_early_prediction():
     early_metrics = [metrics.PointAdjust, Range_PR_front, metrics.NAB_score]
     # anomalies = [[[5, 9], [15, 19]], [8,9], [7,8], [6,7], [5,6], [8,9,18,19],[7,8,17,18],[6,7,16,17], [5,6,15,16]]
     anomalies = [[[5, 9], [15, 19]], [9], [7], [5], [9, 19], [7, 17], [5, 15]]
     length = 22
     create_table(anomalies, early_metrics, length, scale=2)
+
 
 def length_problem_1():
     # anomalies = [[[5,6], [15, 19]], [15,16,17,18,19], [5,6,15,16]]
@@ -217,15 +219,17 @@ def close_fp():
         # metrics.Pointwise_metrics, metrics.PointAdjust, metrics.Segmentwise_metrics, metrics.Composite_f, metrics.NAB_score,
         metrics.Affiliation,
         metrics.Time_Tolerant,
-        metrics.Temporal_Distance
+        metrics.Temporal_Distance,
     ]
     length = 17
     create_table(anomalies, metric_list, length, scale=2)
 
+
 def concise():
-    anomalies = [[4, 5, 8, 9, 12,15], [4, 5, 8, 9, 15], [[3, 18]]]
+    anomalies = [[4, 5, 8, 9, 12, 15], [4, 5, 8, 9, 15], [[3, 18]]]
     length = 22
     create_table(anomalies, All_metrics, length, scale=2)
+
 
 def af_problem():
     anomalies = [[29, 30, 35, 36], [25, 26, 35, 36], [29, 30, 34, 35]]
@@ -235,6 +239,7 @@ def af_problem():
     ]
     length = 38
     create_table(anomalies, metric_list, length, scale=2)
+
 
 # def labelling_problem():
 #    anomalies = [[[6,7],[30,39]], [[15,16],[30,33]],[6,7,30,40], [[6,7],[15,16],[30,39]]]
@@ -289,7 +294,12 @@ class Nonbinary_Table(Table):
         )
         self.add_line("\\foreach \\i/\\a in")
         self.add_line(
-            str([(round(i * self.x_factor,3), round(a * self.y_factor + self.y_shift,3)) for i, a in enumerate(self.anomaly_scores[number - 1])])
+            str(
+                [
+                    (round(i * self.x_factor, 3), round(a * self.y_factor + self.y_shift, 3))
+                    for i, a in enumerate(self.anomaly_scores[number - 1])
+                ]
+            )
             .replace(",", "/")
             .replace(")/", ",")
             .replace("(", "")
@@ -305,13 +315,24 @@ class Nonbinary_Table(Table):
         self.add_line("}")
         self.add_line("\\end{tikzpicture}")
 
-rng = np.random.default_rng()
-RANDOM_TS = rng.uniform(0,1,9999)
-def random_anomaly_score(length,binary_prediction, noise_amplitude = 0.5, presmoothing_kernel = [.25,.5,.25], postsmoothing_kernel = [.25,.5,.25]):
 
-    anomaly_score = metrics.Binary_anomalies(length,binary_prediction).anomalies_binary
-    anomaly_score += smooth(RANDOM_TS[:len(anomaly_score)]*noise_amplitude, presmoothing_kernel)#rng.uniform(0, noise_amplitude, len(anomaly_score)), presmoothing_kernel)
+rng = np.random.default_rng()
+RANDOM_TS = rng.uniform(0, 1, 9999)
+
+
+def random_anomaly_score(
+    length,
+    binary_prediction,
+    noise_amplitude=0.5,
+    presmoothing_kernel=[0.25, 0.5, 0.25],
+    postsmoothing_kernel=[0.25, 0.5, 0.25],
+):
+    anomaly_score = metrics.Binary_anomalies(length, binary_prediction).anomalies_binary
+    anomaly_score += smooth(
+        RANDOM_TS[: len(anomaly_score)] * noise_amplitude, presmoothing_kernel
+    )  # rng.uniform(0, noise_amplitude, len(anomaly_score)), presmoothing_kernel)
     return smooth(anomaly_score, postsmoothing_kernel)
+
 
 def smooth(anomaly_score, kernel):
     return np.convolve(
@@ -323,15 +344,17 @@ def smooth(anomaly_score, kernel):
         "same",
     )
 
-def gaussian_smoothing(binary_prediction, length, std = 1):
-    anomaly_score = metrics.Binary_anomalies(length,binary_prediction).anomalies_binary
+
+def gaussian_smoothing(binary_prediction, length, std=1):
+    anomaly_score = metrics.Binary_anomalies(length, binary_prediction).anomalies_binary
     smooth_score = np.zeros(length)
     indices = np.arange(length)
     for i, point_val in enumerate(anomaly_score):
-        smooth_score += point_val * np.exp(-(indices-i)**2/(2*std))
+        smooth_score += point_val * np.exp(-((indices - i) ** 2) / (2 * std))
     return smooth_score
 
-Nonbinary_metrics= [
+
+Nonbinary_metrics = [
     metrics.PatK_pw,
     metrics.Best_threshold_pw,
     metrics.AUC_ROC,
@@ -344,47 +367,54 @@ ROC_metrics = [
     metrics.VUS_ROC,
 ]
 
+
 def nonbinary_labelling_problem():
     length = 30
-    anomaly_scores = [random_anomaly_score(length,[18, 24], postsmoothing_kernel=[1])]
+    anomaly_scores = [random_anomaly_score(length, [18, 24], postsmoothing_kernel=[1])]
     gt = [[18, 23]]
     create_nonbinary_table(gt, anomaly_scores, Nonbinary_metrics, length, scale=2)
 
     gt = [18, 24]
-    anomaly_scores = [random_anomaly_score(length,[[18, 23]], postsmoothing_kernel=[1])]
+    anomaly_scores = [random_anomaly_score(length, [[18, 23]], postsmoothing_kernel=[1])]
     create_nonbinary_table(gt, anomaly_scores, Nonbinary_metrics, length, scale=2)
 
+
 def nonbinary_detection_over_covering():
-    gt = [[5,12], [20,27]]
+    gt = [[5, 12], [20, 27]]
     length = 28
-    anomaly_scores = [random_anomaly_score(length, x, noise_amplitude=0, postsmoothing_kernel=[1]) for x in [[[5,12]], [5,20]] ]
+    anomaly_scores = [
+        random_anomaly_score(length, x, noise_amplitude=0, postsmoothing_kernel=[1]) for x in [[[5, 12]], [5, 20]]
+    ]
     create_nonbinary_table(gt, anomaly_scores, Nonbinary_metrics, length, scale=1.2)
 
+
 def auc_roc_problem():
-    gt = [14,15,16]
+    gt = [14, 15, 16]
     length = 45
-    anomaly_scores = [random_anomaly_score(length, x, postsmoothing_kernel=[1], noise_amplitude=0) for x in [[14,15], [[12,20]]] ]
+    anomaly_scores = [
+        random_anomaly_score(length, x, postsmoothing_kernel=[1], noise_amplitude=0) for x in [[14, 15], [[12, 20]]]
+    ]
     create_nonbinary_table(gt, anomaly_scores, Nonbinary_metrics, length, scale=1.5)
 
 
 def nonbinary_length_problem_1():
-
-    gt = [[3,4], [11,12], [19, 25]]
+    gt = [[3, 4], [11, 12], [19, 25]]
     length = 27
-    anomaly_scores = [random_anomaly_score(length, x, noise_amplitude=0) for x in [[[19,25]], [3,4,11,12]] ]
+    anomaly_scores = [random_anomaly_score(length, x, noise_amplitude=0) for x in [[[19, 25]], [3, 4, 11, 12]]]
     create_nonbinary_table(gt, anomaly_scores, Nonbinary_metrics, length, scale=1.2)
 
-def score_value_problem():
 
-    gt = [[8,10]]
+def score_value_problem():
+    gt = [[8, 10]]
     length = 21
     x = np.arange(21)
-    anomaly_scores = 1/(1+abs(x-10)), (10.1-abs(x-10))**0.5/3
+    anomaly_scores = 1 / (1 + abs(x - 10)), (10.1 - abs(x - 10)) ** 0.5 / 3
     create_nonbinary_table(gt, anomaly_scores, Nonbinary_metrics, length, scale=1.5)
+
 
 def create_nonbinary_table(gt, anomaly_scores, metric_list, length, name=None, scale=None, AUC_TEST=False):
     results = []
-    for anomaly_score in anomaly_scores: 
+    for anomaly_score in anomaly_scores:
         results_this_line = []
         metric_names = []
         for metric in metric_list:
@@ -394,15 +424,14 @@ def create_nonbinary_table(gt, anomaly_scores, metric_list, length, name=None, s
         results.append(results_this_line)
 
     figure_contents = make_figure_content(length, [gt])
-    table_content = Table_content(
-        figure_contents, metric_names, results
-    )
+    table_content = Table_content(figure_contents, metric_names, results)
 
     table = Nonbinary_Table(anomaly_scores, table_content, name, scale)
     table.write()
-    if AUC_TEST: # left alignment of variable length anomaly scores
+    if AUC_TEST:  # left alignment of variable length anomaly scores
         table.string = table.string.replace("ccc", "lcc")
     print(table)
+
 
 def nonbinary_close_fp():
     length = 17
@@ -410,33 +439,45 @@ def nonbinary_close_fp():
     anomaly_scores = [gaussian_smoothing(x, length, std=2) for x in [[8], [9], [10], [11]]]
     create_nonbinary_table(gt, anomaly_scores, Nonbinary_metrics, length, scale=2)
 
+
 def nonbinary_nonsmooth_close_fp():
     length = 17
     gt = [12, 13, 14]
-    anomaly_scores = [random_anomaly_score(length, x, noise_amplitude=0, postsmoothing_kernel=[1]) for x in [[8], [9], [10], [11]]]
+    anomaly_scores = [
+        random_anomaly_score(length, x, noise_amplitude=0, postsmoothing_kernel=[1]) for x in [[8], [9], [10], [11]]
+    ]
     create_nonbinary_table(gt, anomaly_scores, Nonbinary_metrics, length, scale=2)
+
 
 def auc_roc_problem_2():
     length = 64
-    gt = [[10,14]]
-    anomaly_scores = [random_anomaly_score(length, pred, noise_amplitude=0, postsmoothing_kernel=[1]) for length in [32,64] for pred in [[10,11,12,13],[[3,15]]]]
+    gt = [[10, 14]]
+    anomaly_scores = [
+        random_anomaly_score(length, pred, noise_amplitude=0, postsmoothing_kernel=[1])
+        for length in [32, 64]
+        for pred in [[10, 11, 12, 13], [[3, 15]]]
+    ]
     create_nonbinary_table(gt, anomaly_scores, ROC_metrics, length, scale=1.2, AUC_TEST=True)
+
 
 def auc_roc_problem_3():
     length = 64
-    gt = [[4,7]]
-    anomaly_scores = [gaussian_smoothing(pred, length, std=10) for length in [8,16,32,64] for pred in [[0]]]
+    gt = [[4, 7]]
+    anomaly_scores = [gaussian_smoothing(pred, length, std=10) for length in [8, 16, 32, 64] for pred in [[0]]]
     create_nonbinary_table(gt, anomaly_scores, ROC_metrics, length, scale=1.2, AUC_TEST=True)
+
 
 def nonbinary_short_predictions():
     length = 22
     gt = [[14, 20]]
-    anomaly_scores = [random_anomaly_score(length, x, noise_amplitude=0) for x in [[2, 15], [2, 3, 4, 5, 6, 7, 15, 16, 17, 18, 19, 20]]]
-    create_nonbinary_table(gt,anomaly_scores, Nonbinary_metrics, length, scale=1.5)
+    anomaly_scores = [
+        random_anomaly_score(length, x, noise_amplitude=0)
+        for x in [[2, 15], [2, 3, 4, 5, 6, 7, 15, 16, 17, 18, 19, 20]]
+    ]
+    create_nonbinary_table(gt, anomaly_scores, Nonbinary_metrics, length, scale=1.5)
 
 
 if __name__ == "__main__":
-
     print("\\newcommand{\\showLengthProblemI}[0]{")
     length_problem_1()
     print("}")
@@ -466,8 +507,8 @@ if __name__ == "__main__":
     nonbinary_detection_over_covering()
     print("}")
 
-    #print("auc_roc_problem")
-    #auc_roc_problem()
+    # print("auc_roc_problem")
+    # auc_roc_problem()
     print("\\newcommand{\\showNonbinaryLengthI}[0]{")
     nonbinary_length_problem_1()
     print("}")
@@ -495,4 +536,3 @@ if __name__ == "__main__":
     print("\\newcommand{\\showNonbinaryShortPredictions}[0]{")
     nonbinary_short_predictions()
     print("}")
-

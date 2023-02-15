@@ -4,7 +4,6 @@ from typing import Union
 
 @dataclass
 class Figure_content:
-
     row_titles: [str]  # | None
 
     time_series_length: int
@@ -22,16 +21,14 @@ class Figure:
         self.current_height = 0
 
         self.scale = scale
-        self.steplength = .2*self.scale
-        self.title_placement = -.7*self.scale
+        self.steplength = 0.2 * self.scale
+        self.title_placement = -0.7 * self.scale
 
-        self.circle_radius = 0.05*self.scale
-        self.point_step_length = .1*self.scale
+        self.circle_radius = 0.05 * self.scale
+        self.point_step_length = 0.1 * self.scale
 
     def make(self):
-        self.add_line(
-            f"\\begin{{tikzpicture}}[baseline=-\\the\\dimexpr\\fontdimen22\\textfont2\\relax]"
-        )
+        self.add_line(f"\\begin{{tikzpicture}}[baseline=-\\the\\dimexpr\\fontdimen22\\textfont2\\relax]")
         self.add_all_content()
         self.add_line("\\end{tikzpicture}")
 
@@ -45,12 +42,10 @@ class Figure:
             file.write(self.string)
 
     def add_all_content(self):
-
         for i in range(self.n_rows):
             self.add_next_row()
 
     def add_next_row(self):
-
         self.add_row_title()
         self.add_row_line()
         self.add_row_points()
@@ -72,16 +67,21 @@ class Figure:
         )
 
     def add_row_points(self):
-        self.add_line(f"\\nomalies[first x=0, second x={round(self.point_step_length,3)}, last x={round(self.content.time_series_length*self.point_step_length-0.01,3)}, y={self.current_height}, radius={round(self.circle_radius,3)}]") # last one NOT included (-0.01)
+        self.add_line(
+            f"\\nomalies[first x=0, second x={round(self.point_step_length,3)}, last x={round(self.content.time_series_length*self.point_step_length-0.01,3)}, y={self.current_height}, radius={round(self.circle_radius,3)}]"
+        )  # last one NOT included (-0.01)
 
     def add_row_anomalies(self):
-        step=self.point_step_length
+        step = self.point_step_length
         for start, stop in self.content.anomalies[self.rows_added]:
-            if stop>start:
-                self.add_line(f"\\anomalies[first x={round(start*step,3)}, second x={round(start*step+step,3)}, last x={round(stop*step+0.01,3)}, y={self.current_height}, radius={round(self.circle_radius,3)}]") # last one included (+0.01
+            if stop > start:
+                self.add_line(
+                    f"\\anomalies[first x={round(start*step,3)}, second x={round(start*step+step,3)}, last x={round(stop*step+0.01,3)}, y={self.current_height}, radius={round(self.circle_radius,3)}]"
+                )  # last one included (+0.01
             else:
-                self.add_line(f"\\anomaly{{{round(start*step,3)}}}{{{self.current_height}}}{{{round(self.circle_radius, 3)}}}")
-
+                self.add_line(
+                    f"\\anomaly{{{round(start*step,3)}}}{{{self.current_height}}}{{{round(self.circle_radius, 3)}}}"
+                )
 
     def add_row_explainations(self):
         pass

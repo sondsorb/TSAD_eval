@@ -13,7 +13,7 @@ class Two_1d_normal_distributions:
         self.N_mu = N_mu
         self.P_std = P_std
         self.N_std = N_std
-        self.betas = (1/8,1/4,1/2, 1,2,4,8,16,32) if betas == None else betas
+        self.betas = (1 / 8, 1 / 4, 1 / 2, 1, 2, 4, 8, 16, 32) if betas == None else betas
 
         self.color = color
         self.N_color = "k"
@@ -40,11 +40,11 @@ class Two_1d_normal_distributions:
         self.o_threshold = []
 
         # Track maximum f scores for various beta values
-        self.max_f = {i:0 for i in self.betas}
-        self.max_f_fpr = {i:0 for i in self.betas}
-        self.max_f_precision = {i:0 for i in self.betas}
-        self.max_f_recall = {i:0 for i in self.betas}
-        self.max_f_thresholds = {i:0 for i in self.betas}
+        self.max_f = {i: 0 for i in self.betas}
+        self.max_f_fpr = {i: 0 for i in self.betas}
+        self.max_f_precision = {i: 0 for i in self.betas}
+        self.max_f_recall = {i: 0 for i in self.betas}
+        self.max_f_thresholds = {i: 0 for i in self.betas}
 
         for threshold in np.linspace(start, stop, steps):
             TN = self.N_ampl * norm.cdf(threshold, loc=self.N_mu, scale=self.N_std)
@@ -63,14 +63,14 @@ class Two_1d_normal_distributions:
                     self.max_f_recall[beta] = self.recall[-1]
                     self.max_f_thresholds[beta] = threshold
 
-            if (FN) / (self.P_ampl) >= self.xs * delta + delta*0.5:
+            if (FN) / (self.P_ampl) >= self.xs * delta + delta * 0.5:
                 self.x_fpr.append(FP / (FP + TN))
                 self.x_precision.append(TP / (TP + FP))
                 self.x_recall.append(TP / (TP + FN))
                 self.xs += 1
                 # print(xs, TN+FN)
                 self.x_threshold.append(threshold)
-            if (TN / self.N_ampl) >= self.os * delta + delta*0.5:
+            if (TN / self.N_ampl) >= self.os * delta + delta * 0.5:
                 self.o_fpr.append(FP / (FP + TN))
                 self.o_precision.append(TP / (TP + FP))
                 self.o_recall.append(TP / (TP + FN))
@@ -88,23 +88,60 @@ class Two_1d_normal_distributions:
             roc_ax.plot(self.o_fpr, self.o_recall, "o", color=self.color, fillstyle="none", zorder=1)
             pr_ax.plot(self.o_precision, self.o_recall, "o", color=self.color, fillstyle="none", zorder=1)
         if plot_fs:
-            roc_ax.plot(list(self.max_f_fpr.values()), list(self.max_f_recall.values()), ".", linestyle= "None", zorder=2, color="k")#self.color)
-            pr_ax.plot(list(self.max_f_precision.values()), list(self.max_f_recall.values()), ".", zorder=2, color="k")#self.color)
+            roc_ax.plot(
+                list(self.max_f_fpr.values()),
+                list(self.max_f_recall.values()),
+                ".",
+                linestyle="None",
+                zorder=2,
+                color="k",
+            )  # self.color)
+            pr_ax.plot(
+                list(self.max_f_precision.values()), list(self.max_f_recall.values()), ".", zorder=2, color="k"
+            )  # self.color)
             for beta in self.betas:
-                #roc_ax.plot([self.max_f_fpr[beta]],[self.max_f_recall[beta]], marker=f"$1/{int(1/beta)}$" if beta<1 else f"${beta}$", linestyle= "None", zorder=2, color="k")
-                #pr_ax.plot([self.max_f_precision[beta]], [self.max_f_recall[beta]], marker=f"$1/{int(1/beta)}$" if beta<1 else f"${beta}$", zorder=2, color="k")
-                if self.color == "forestgreen": # need to place the numbers differently
-                    roc_ax.text(self.max_f_fpr[beta],self.max_f_recall[beta], f" $1/{int(1/beta)}$" if beta<1 else f" ${beta}$",horizontalalignment="left", verticalalignment="top", color=self.color)
-                    pr_ax.text(self.max_f_precision[beta], self.max_f_recall[beta],f"$1/{int(1/beta)}$" if beta<1 else f"${beta}$",horizontalalignment="left", verticalalignment="bottom", color=self.color)
+                # roc_ax.plot([self.max_f_fpr[beta]],[self.max_f_recall[beta]], marker=f"$1/{int(1/beta)}$" if beta<1 else f"${beta}$", linestyle= "None", zorder=2, color="k")
+                # pr_ax.plot([self.max_f_precision[beta]], [self.max_f_recall[beta]], marker=f"$1/{int(1/beta)}$" if beta<1 else f"${beta}$", zorder=2, color="k")
+                if self.color == "forestgreen":  # need to place the numbers differently
+                    roc_ax.text(
+                        self.max_f_fpr[beta],
+                        self.max_f_recall[beta],
+                        f" $1/{int(1/beta)}$" if beta < 1 else f" ${beta}$",
+                        horizontalalignment="left",
+                        verticalalignment="top",
+                        color=self.color,
+                    )
+                    pr_ax.text(
+                        self.max_f_precision[beta],
+                        self.max_f_recall[beta],
+                        f"$1/{int(1/beta)}$" if beta < 1 else f"${beta}$",
+                        horizontalalignment="left",
+                        verticalalignment="bottom",
+                        color=self.color,
+                    )
                 else:
-                    roc_ax.text(self.max_f_fpr[beta],self.max_f_recall[beta], f"$1/{int(1/beta)}$" if beta<1 else f"${beta}$", horizontalalignment="right", verticalalignment="bottom", color=self.color)
-                    pr_ax.text(self.max_f_precision[beta], self.max_f_recall[beta],f"$1/{int(1/beta)}$ " if beta<1 else f"${beta}$ ",horizontalalignment="right", verticalalignment="top", color=self.color)
-            
-            #adjust axes to get the numbers within the figure
+                    roc_ax.text(
+                        self.max_f_fpr[beta],
+                        self.max_f_recall[beta],
+                        f"$1/{int(1/beta)}$" if beta < 1 else f"${beta}$",
+                        horizontalalignment="right",
+                        verticalalignment="bottom",
+                        color=self.color,
+                    )
+                    pr_ax.text(
+                        self.max_f_precision[beta],
+                        self.max_f_recall[beta],
+                        f"$1/{int(1/beta)}$ " if beta < 1 else f"${beta}$ ",
+                        horizontalalignment="right",
+                        verticalalignment="top",
+                        color=self.color,
+                    )
+
+            # adjust axes to get the numbers within the figure
             xmin, xmax = roc_ax.get_xlim()
             xmin, xmax = pr_ax.get_xlim()
-            roc_ax.set_xlim([xmin-0.04, xmax])
-            pr_ax.set_xlim([xmin-0.01, xmax])
+            roc_ax.set_xlim([xmin - 0.04, xmax])
+            pr_ax.set_xlim([xmin - 0.01, xmax])
         pr_ax.set_xlabel("Precision")
         pr_ax.set_ylabel("Recall")
         roc_ax.set_xlabel("False positive rate")
@@ -116,19 +153,27 @@ class Two_1d_normal_distributions:
         plt.show()
 
     def plot_roc_pr_lines(self, ax):
-        ax.plot(self.fpr, np.array(self.recall)+1, self.color, zorder=1)
-        ax.plot(np.array(self.precision)*(-1)+1, self.recall, self.color, zorder=1)
-        #for i in range(len(self.x_fpr)):
+        ax.plot(self.fpr, np.array(self.recall) + 1, self.color, zorder=1)
+        ax.plot(np.array(self.precision) * (-1) + 1, self.recall, self.color, zorder=1)
+        # for i in range(len(self.x_fpr)):
         #    plt.plot([self.x_fpr[i], 1-self.x_precision[i]], [self.x_recall[i]+1,self.x_recall[i]], marker="x", color=self.P_color, zorder=1, alpha=0.3)
-        #for i in range(len(self.o_fpr)):
+        # for i in range(len(self.o_fpr)):
         #    plt.plot([self.o_fpr[i], 1-self.o_precision[i]], [self.o_recall[i]+1,self.o_recall[i]], marker="o", color=self.N_color, zorder=1, alpha=0.3)
-        for i in range(0,len(self.recall), 5):
-            ax.plot([self.fpr[i], 1-self.precision[i]], [self.recall[i]+1,self.recall[i]], marker="o", color=self.N_color, zorder=1, alpha=0.3)
+        for i in range(0, len(self.recall), 5):
+            ax.plot(
+                [self.fpr[i], 1 - self.precision[i]],
+                [self.recall[i] + 1, self.recall[i]],
+                marker="o",
+                color=self.N_color,
+                zorder=1,
+                alpha=0.3,
+            )
 
-
-    def plot_distributions(self, axes, start=-5, stop=7, steps=1001, normalize=True, plot_xs=True, plot_os=True, plot_fs=False, threshold=0):
+    def plot_distributions(
+        self, axes, start=-5, stop=7, steps=1001, normalize=True, plot_xs=True, plot_os=True, plot_fs=False, threshold=0
+    ):
         grid = np.linspace(start, stop, steps)
-        fill_alpha=0.2
+        fill_alpha = 0.2
 
         y = lambda x: norm.pdf(x, loc=self.N_mu, scale=self.N_std) * (1 if normalize else self.N_ampl)
         axes[0].plot(
@@ -138,16 +183,20 @@ class Two_1d_normal_distributions:
             label=f"pdf_N/{self.N_ampl}",
         )
 
-        axes[0].fill_between(grid[grid<=threshold], 0, y(grid[grid<=threshold]), alpha=fill_alpha, lw=0, color="darkgreen")
-        axes[0].fill_between(grid[grid>=threshold], 0, y(grid[grid>=threshold]), alpha=fill_alpha, lw=0, color="orchid")
-        tn_x=min(self.N_mu,threshold-0.75)
-        fp_x=max(self.N_mu,threshold+0.75)
-        axes[0].text(tn_x, y(tn_x)/2-0.005, "TN", horizontalalignment="center", verticalalignment="top")
-        axes[0].text(fp_x, y(fp_x)/2-0.005, "FP", horizontalalignment="center", verticalalignment="top")
+        axes[0].fill_between(
+            grid[grid <= threshold], 0, y(grid[grid <= threshold]), alpha=fill_alpha, lw=0, color="darkgreen"
+        )
+        axes[0].fill_between(
+            grid[grid >= threshold], 0, y(grid[grid >= threshold]), alpha=fill_alpha, lw=0, color="orchid"
+        )
+        tn_x = min(self.N_mu, threshold - 0.75)
+        fp_x = max(self.N_mu, threshold + 0.75)
+        axes[0].text(tn_x, y(tn_x) / 2 - 0.005, "TN", horizontalalignment="center", verticalalignment="top")
+        axes[0].text(fp_x, y(fp_x) / 2 - 0.005, "FP", horizontalalignment="center", verticalalignment="top")
         # add thresholdline, on the whole y-range
         ymin, ymax = axes[0].get_ylim()
-        axes[0].plot([threshold,threshold], [ymin-1, ymax+1], "--", color="gray", lw=1)
-        axes[0].set_ylim([ymin-0.02, ymax])
+        axes[0].plot([threshold, threshold], [ymin - 1, ymax + 1], "--", color="gray", lw=1)
+        axes[0].set_ylim([ymin - 0.02, ymax])
 
         # same for anomal distributions
         y = lambda x: norm.pdf(x, loc=self.P_mu, scale=self.P_std) * (1 if normalize else self.P_ampl)
@@ -157,23 +206,27 @@ class Two_1d_normal_distributions:
             color=self.P_color,
             label=f"pdf_P/{self.P_ampl}",
         )
-        axes[1].fill_between(grid[grid<=threshold], 0, y(grid[grid<=threshold]), alpha=fill_alpha, lw=0, color="chocolate")
-        axes[1].fill_between(grid[grid>=threshold], 0, y(grid[grid>=threshold]), alpha=fill_alpha, lw=0, color="darkcyan")
-        fn_x = min(self.P_mu, threshold-0.75)
-        tp_x = max(self.P_mu, threshold+0.75)
-        axes[1].text(fn_x, y(fn_x)/2, "FN", horizontalalignment="center", verticalalignment="top")
-        axes[1].text(tp_x, y(tp_x)/2, "TP", horizontalalignment="center", verticalalignment="top")
+        axes[1].fill_between(
+            grid[grid <= threshold], 0, y(grid[grid <= threshold]), alpha=fill_alpha, lw=0, color="chocolate"
+        )
+        axes[1].fill_between(
+            grid[grid >= threshold], 0, y(grid[grid >= threshold]), alpha=fill_alpha, lw=0, color="darkcyan"
+        )
+        fn_x = min(self.P_mu, threshold - 0.75)
+        tp_x = max(self.P_mu, threshold + 0.75)
+        axes[1].text(fn_x, y(fn_x) / 2, "FN", horizontalalignment="center", verticalalignment="top")
+        axes[1].text(tp_x, y(tp_x) / 2, "TP", horizontalalignment="center", verticalalignment="top")
 
         # add thresholdline, on the whole y-range
         ymin, ymax = axes[1].get_ylim()
-        axes[1].plot([threshold,threshold], [ymin-1, ymax+1], "--", color="gray", lw=1)
+        axes[1].plot([threshold, threshold], [ymin - 1, ymax + 1], "--", color="gray", lw=1)
         axes[1].set_ylim([ymin, ymax])
 
-        #if plot_os:
+        # if plot_os:
         #    ax.plot(self.o_threshold, np.ones(self.os)*(-0.01), "o", fillstyle="none", color=self.color)
-        #if plot_xs:
+        # if plot_xs:
         #    ax.plot(self.x_threshold, np.ones(self.xs)*(-0.02), "x", color=self.color)
-        #if plot_fs:
+        # if plot_fs:
         #    #ax.plot(list(self.max_f_thresholds.values()),np.ones(len(self.betas))*(-0.02), "|", linestyle= "None", zorder=2, color="k")#self.color)
         #    #for i, beta in enumerate(self.betas):
         #    #    ax.text(self.max_f_thresholds[beta]-0.07,-0.025+0.01*(-1)**i, f"$1/{int(1/beta)}$" if beta<1 else f"${beta}$")
@@ -181,9 +234,9 @@ class Two_1d_normal_distributions:
         #    ax.plot(list(self.max_f_thresholds.values())[1::2],np.ones(len(self.betas[1::2]))*(-0.005), "|", linestyle= "None", zorder=2, color="k")#self.color)
         #    for beta in self.betas[1::2]:
         #        ax.text(self.max_f_thresholds[beta],-0.025, f"$1/{int(1/beta)}$" if beta<1 else f"${beta}$", horizontalalignment='center')
-        #ax.legend()
-        #axes[0].set_xlabel("Anomaly score")
-        #ax.grid()
+        # ax.legend()
+        # axes[0].set_xlabel("Anomaly score")
+        # ax.grid()
 
     def plot_cdf(self, ax, start=-6, stop=8, steps=1001, normalize=True):
         grid = np.linspace(start, stop, steps)
@@ -193,68 +246,70 @@ class Two_1d_normal_distributions:
         # ax.plot(grid, norm.pdf(grid, loc=3, scale=1))
         ax.plot(
             grid,
-            norm.cdf(grid, loc=self.N_mu, scale=self.N_std)
-            * (1 if normalize else self.N_ampl),
+            norm.cdf(grid, loc=self.N_mu, scale=self.N_std) * (1 if normalize else self.N_ampl),
             color=self.N_color,
             label=f"pdf_N/{self.N_ampl}",
         )
         ax.plot(
             grid,
-            norm.cdf(grid, loc=self.P_mu, scale=self.P_std)
-            * (1 if normalize else self.P_ampl),
+            norm.cdf(grid, loc=self.P_mu, scale=self.P_std) * (1 if normalize else self.P_ampl),
             color=self.P_color,
             label=f"pdf_P/{self.P_ampl}",
         )
 
-if __name__ == "__main__":
 
-    t1 = Two_1d_normal_distributions(1, 49, 1.8, -1, 2, 1, color="mediumblue", betas = (1/8,1/4,1/2,1,2,4,8,16))
-    t2 = Two_1d_normal_distributions(1, 49, 1, -1, 1, 1, color="forestgreen", betas = (1/8,1/4,1/2,1,2,4,8,16))
+if __name__ == "__main__":
+    t1 = Two_1d_normal_distributions(
+        1, 49, 1.8, -1, 2, 1, color="mediumblue", betas=(1 / 8, 1 / 4, 1 / 2, 1, 2, 4, 8, 16)
+    )
+    t2 = Two_1d_normal_distributions(
+        1, 49, 1, -1, 1, 1, color="forestgreen", betas=(1 / 8, 1 / 4, 1 / 2, 1, 2, 4, 8, 16)
+    )
 
     t1.make(steps=1001, delta=0.1)
     t2.make(steps=1001, delta=0.1)
 
-    #Local visualtization:
+    # Local visualtization:
 
-    #fig, axes = plt.subplots(2, 1)
-    #t1.plot_roc_pr(axes[0], axes[1])
-    #t2.plot_roc_pr(axes[0], axes[1])
-    #plt.show()
+    # fig, axes = plt.subplots(2, 1)
+    # t1.plot_roc_pr(axes[0], axes[1])
+    # t2.plot_roc_pr(axes[0], axes[1])
+    # plt.show()
 
-    #fig, axes = plt.subplots(1,2)
-    #t1.plot_distributions(axes[0], plot_xs=False, plot_os=False,plot_fs=True)
-    #t2.plot_distributions(axes[1], plot_xs=False, plot_os=False,plot_fs=True)
-    #plt.show()
+    # fig, axes = plt.subplots(1,2)
+    # t1.plot_distributions(axes[0], plot_xs=False, plot_os=False,plot_fs=True)
+    # t2.plot_distributions(axes[1], plot_xs=False, plot_os=False,plot_fs=True)
+    # plt.show()
 
-    #quit()
+    # quit()
 
     # Save plots:
 
-    figsize=(4,4)
+    figsize = (4, 4)
 
-    #plt.figure(figsize=figsize)
-    #t1.plot_roc_pr_lines(plt)
-    #plt.tight_layout()
-    #plt.savefig("lines_1.pdf")
-    #plt.show()
-    #plt.close("all")
-    #plt.figure(figsize=figsize)
-    #t2.plot_roc_pr_lines(plt)
-    #plt.tight_layout()
-    #plt.savefig("lines_2.pdf")
-    #plt.show()
-    #plt.close("all")
+    # plt.figure(figsize=figsize)
+    # t1.plot_roc_pr_lines(plt)
+    # plt.tight_layout()
+    # plt.savefig("lines_1.pdf")
+    # plt.show()
+    # plt.close("all")
+    # plt.figure(figsize=figsize)
+    # t2.plot_roc_pr_lines(plt)
+    # plt.tight_layout()
+    # plt.savefig("lines_2.pdf")
+    # plt.show()
+    # plt.close("all")
 
-    #roc_fig, roc_ax = plt.subplots(figsize=figsize)
-    #plt.tight_layout()
-    #pr_fig, pr_ax = plt.subplots(figsize=figsize)
-    #plt.tight_layout()
-    #t1.plot_roc_pr(roc_ax, pr_ax)
-    #t2.plot_roc_pr(roc_ax, pr_ax)
-    #roc_fig.savefig("auc_roc.pdf")
-    #pr_fig.savefig("auc_pr.pdf")
-    #plt.show()
-    #plt.close("all")
+    # roc_fig, roc_ax = plt.subplots(figsize=figsize)
+    # plt.tight_layout()
+    # pr_fig, pr_ax = plt.subplots(figsize=figsize)
+    # plt.tight_layout()
+    # t1.plot_roc_pr(roc_ax, pr_ax)
+    # t2.plot_roc_pr(roc_ax, pr_ax)
+    # roc_fig.savefig("auc_roc.pdf")
+    # pr_fig.savefig("auc_pr.pdf")
+    # plt.show()
+    # plt.close("all")
 
     roc_fig, roc_ax = plt.subplots(figsize=figsize)
     pr_fig, pr_ax = plt.subplots(figsize=figsize)
@@ -268,30 +323,33 @@ if __name__ == "__main__":
     plt.close("all")
     quit()
 
+    # figsize=(5,3)
 
-    #figsize=(5,3)
+    # fig, axes = plt.subplots(2,figsize=figsize, sharex=True)
+    # t1.plot_distributions(axes, plot_xs=False, plot_os=False,plot_fs=True)
+    # plt.tight_layout()
+    # plt.subplots_adjust(hspace=.0)
+    # plt.savefig("auc_distributions_1.pdf")
+    # plt.show()
+    # plt.close("all")
 
-    #fig, axes = plt.subplots(2,figsize=figsize, sharex=True)
-    #t1.plot_distributions(axes, plot_xs=False, plot_os=False,plot_fs=True)
-    #plt.tight_layout()
-    #plt.subplots_adjust(hspace=.0)
-    #plt.savefig("auc_distributions_1.pdf")
-    #plt.show()
-    #plt.close("all")
+    # figs, axes = plt.subplots(2,figsize=figsize, sharex=True)
+    # t2.plot_distributions(axes, stop=5, plot_xs=False, plot_os=False,plot_fs=True)
+    # plt.tight_layout()
+    # plt.subplots_adjust(hspace=.0)
+    # plt.savefig("auc_distributions_2.pdf")
+    # plt.show()
 
-    #figs, axes = plt.subplots(2,figsize=figsize, sharex=True)
-    #t2.plot_distributions(axes, stop=5, plot_xs=False, plot_os=False,plot_fs=True)
-    #plt.tight_layout()
-    #plt.subplots_adjust(hspace=.0)
-    #plt.savefig("auc_distributions_2.pdf")
-    #plt.show()
+    figsize = (5, 3)
 
-    figsize=(5,3)
-
-    for beta in t1.betas:#[16,4,1,1/4,1/8]:
-        fig, axes = plt.subplots(2,2,figsize=figsize, sharex=True, sharey=True)
-        t1.plot_distributions([axes[0][0],axes[1][0]], plot_xs=False, plot_os=False,plot_fs=True, threshold=t1.max_f_thresholds[beta])
-        t2.plot_distributions([axes[0][1],axes[1][1]], plot_xs=False, plot_os=False,plot_fs=True, threshold=t2.max_f_thresholds[beta])
+    for beta in t1.betas:  # [16,4,1,1/4,1/8]:
+        fig, axes = plt.subplots(2, 2, figsize=figsize, sharex=True, sharey=True)
+        t1.plot_distributions(
+            [axes[0][0], axes[1][0]], plot_xs=False, plot_os=False, plot_fs=True, threshold=t1.max_f_thresholds[beta]
+        )
+        t2.plot_distributions(
+            [axes[0][1], axes[1][1]], plot_xs=False, plot_os=False, plot_fs=True, threshold=t2.max_f_thresholds[beta]
+        )
 
         axes[0][0].set_title(f"Blue detector", color=t1.color)
         axes[0][1].set_title("Green detector", color=t2.color)
@@ -300,10 +358,10 @@ if __name__ == "__main__":
         shadowaxes = fig.add_subplot(111, xticks=[], yticks=[], frame_on=False)
         shadowaxes.set_ylabel("Probability density", labelpad=25)
         fig.tight_layout()
-        #axes[0][0].set_ylabel("Normal \nsamples\n\n")
+        # axes[0][0].set_ylabel("Normal \nsamples\n\n")
         axes[0][0].set_ylabel("Normal\nsamples", labelpad=25)
-        axes[1][0].set_ylabel("Anomalous\nsamples", labelpad = 25)
+        axes[1][0].set_ylabel("Anomalous\nsamples", labelpad=25)
 
-        plt.subplots_adjust(hspace=.0)
+        plt.subplots_adjust(hspace=0.0)
         plt.savefig(f"auc_distributions_b{beta}.pdf")
         plt.show()

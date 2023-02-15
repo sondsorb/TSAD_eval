@@ -50,8 +50,8 @@ class Confusion_metrics_tester(unittest.TestCase):
         self.assertEqual(0.75, recall(tp=3, fn=1))
         self.assertEqual(0.75, precision(tp=3, fp=1))
         self.assertEqual(0.6, f1_score(tp=3, fn=1, fp=3))
-        self.assertEqual(0.625, f1_from_pr(p=1,r=0.25, beta=0.5))
-        self.assertAlmostEqual(5/9, f1_from_pr(p=1,r=0.5, beta=2))
+        self.assertEqual(0.625, f1_from_pr(p=1, r=0.25, beta=0.5))
+        self.assertAlmostEqual(5 / 9, f1_from_pr(p=1, r=0.5, beta=2))
 
     def test_requires_names(self):
         self.assertRaises(TypeError, recall, 3, 4)
@@ -59,9 +59,9 @@ class Confusion_metrics_tester(unittest.TestCase):
         self.assertRaises(TypeError, f1_score, 3, 4, 5)
 
     def test_zerodivision(self):
-        #self.assertRaises(ZeroDivisionError, recall, tp=0, fn=0)
-        #self.assertRaises(ZeroDivisionError, precision, tp=0, fp=0)
-        #self.assertRaises(ZeroDivisionError, f1_score, tp=0, fp=1, fn=1)
+        # self.assertRaises(ZeroDivisionError, recall, tp=0, fn=0)
+        # self.assertRaises(ZeroDivisionError, precision, tp=0, fp=0)
+        # self.assertRaises(ZeroDivisionError, f1_score, tp=0, fp=1, fn=1)
         self.assertEqual(0, recall(tp=0, fn=0))
         self.assertEqual(0, precision(tp=0, fp=0))
         self.assertEqual(0, f1_score(tp=0, fp=1, fn=1))
@@ -92,7 +92,7 @@ class Metrics_tester(unittest.TestCase):
         self.assertEqual(pa.tp, 4)
         self.assertEqual(pa.fp, 2)
         self.assertEqual(pa.fn, 1)
-        
+
         pa = DelayThresholdedPointAdjust(10, [1, 2, 3, 4, 9], [4, 5, 6], k=2)
         self.assertEqual(pa.tp, 0)
         self.assertEqual(pa.fp, 2)
@@ -109,7 +109,7 @@ class Metrics_tester(unittest.TestCase):
         self.assertEqual(pa.tp, 1)
         self.assertEqual(pa.fp, 2)
         self.assertEqual(pa.fn, 4)
-        
+
         pa = PointAdjustKPercent(10, [1, 2, 3, 4, 9], [4, 5, 6], k=0.1)
         self.assertEqual(pa.tp, 4)
         self.assertEqual(pa.fp, 2)
@@ -121,7 +121,7 @@ class Metrics_tester(unittest.TestCase):
         self.assertEqual(pa.tp, 2)
         self.assertEqual(pa.fp, 1)
         self.assertEqual(pa.fn, 3)
-        
+
         pa = LatencySparsityAware(10, [2, 3, 4, 5, 9], [4, 7], tw=2)
         self.assertAlmostEqual(pa.get_score(), f1_score(tp=pa.tp, fn=pa.fn, fp=pa.fp), 4)
         self.assertEqual(pa.tp, 1)
@@ -191,64 +191,63 @@ class Metrics_tester(unittest.TestCase):
         n = NAB_score(10, [[3, 6]], [1])
         self.assertAlmostEqual(n.get_score(), -100 * 0.11 / 2)
 
-
     def test_ttol(self):
-        t = Time_Tolerant(10, [3,4,8], [1,2,3], d=2)
-        self.assertAlmostEqual(t.recall(), 2/3)
+        t = Time_Tolerant(10, [3, 4, 8], [1, 2, 3], d=2)
+        self.assertAlmostEqual(t.recall(), 2 / 3)
         self.assertAlmostEqual(t.precision(), 1)
 
-        t = Time_Tolerant(10, [4,5], [6], d=1)
-        self.assertAlmostEqual(t.recall(), 1/2)
+        t = Time_Tolerant(10, [4, 5], [6], d=1)
+        self.assertAlmostEqual(t.recall(), 1 / 2)
         self.assertAlmostEqual(t.precision(), 1)
 
     def test_TaF(self):
-        t = TaF(10, [4,5,6], [4,5,6])
+        t = TaF(10, [4, 5, 6], [4, 5, 6])
         self.assertEqual(t.get_score(), 1)
 
-        t = TaF(10, [4,5,6], [1,2,3])
+        t = TaF(10, [4, 5, 6], [1, 2, 3])
         self.assertEqual(t.get_score(), 0)
 
-        t = TaF(10, [4,5,6], [7,8,9])
+        t = TaF(10, [4, 5, 6], [7, 8, 9])
         self.assertEqual(t.get_score(), 0)
-        t = TaF(10, [4,5,6], [7,8,9], delta=1)
+        t = TaF(10, [4, 5, 6], [7, 8, 9], delta=1)
         self.assertTrue(t.get_score() > 0)
 
-        t1 = TaF(10, [4,5,8,9], [4,5])
-        t2 = TaF(10, [4,5,8,9], [5,8])
+        t1 = TaF(10, [4, 5, 8, 9], [4, 5])
+        t2 = TaF(10, [4, 5, 8, 9], [5, 8])
         self.assertTrue(t1.get_score() < t2.get_score())
 
     def test_eTaF(self):
-        t = eTaF(10, [4,5,6], [4,5,6])
+        t = eTaF(10, [4, 5, 6], [4, 5, 6])
         self.assertEqual(t.get_score(), 1)
 
-        t = eTaF(10, [4,5,6], [1,2,3])
+        t = eTaF(10, [4, 5, 6], [1, 2, 3])
         self.assertEqual(t.get_score(), 0)
 
-        t = eTaF(10, [4,5,6], [7,8,9])
+        t = eTaF(10, [4, 5, 6], [7, 8, 9])
         self.assertTrue(t.get_score() == 0)
 
-        t1 = eTaF(10, [4,5,8,9], [4,5])
-        t2 = eTaF(10, [4,5,8,9], [5,8])
+        t1 = eTaF(10, [4, 5, 8, 9], [4, 5])
+        t2 = eTaF(10, [4, 5, 8, 9], [5, 8])
         self.assertTrue(t1.get_score() < t2.get_score())
 
     def test_temp_dist(self):
-        t = Temporal_Distance(10, [4,5,6], [4,5,6])
+        t = Temporal_Distance(10, [4, 5, 6], [4, 5, 6])
         self.assertEqual(t.get_score(), 0)
 
-        t = Temporal_Distance(10, [4,6], [4,5,6])
+        t = Temporal_Distance(10, [4, 6], [4, 5, 6])
         self.assertEqual(t.get_score(), 1)
 
-        t = Temporal_Distance(10, [4], [4,5,6])
+        t = Temporal_Distance(10, [4], [4, 5, 6])
         self.assertEqual(t.get_score(), 3)
 
-        t = Temporal_Distance(10, [4,5,6], [8])
+        t = Temporal_Distance(10, [4, 5, 6], [8])
         self.assertEqual(t.get_score(), 11)
 
-        t = Temporal_Distance(10, [4,5,6], [])
+        t = Temporal_Distance(10, [4, 5, 6], [])
         self.assertEqual(t.get_score(), 30)
 
-class Threshold_metric_tester(unittest.TestCase):
 
+class Threshold_metric_tester(unittest.TestCase):
     #    def test_roc(self):
     #        a = aucroc(true = [0,0,1,1], score = [0.1,0.4,0.35,0.8])
     def test_auc_pr(self):
@@ -289,40 +288,37 @@ class Threshold_metric_tester(unittest.TestCase):
 
     def test_vus_pr(self):
         gt = [[0, 1]]
-        anomaly_score = [0,1,2,3,4,5,6,7,8,9]
+        anomaly_score = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
         vus_pr = VUS_PR(gt, anomaly_score, max_window=4)
 
         score = vus_pr.get_score()
         self.assertTrue(score <= 0.2)
 
-        gt = [[1,3]]
-        anomaly_score = [8,0,9,1,7,2,3,4,5,6]
+        gt = [[1, 3]]
+        anomaly_score = [8, 0, 9, 1, 7, 2, 3, 4, 5, 6]
         vus_pr = VUS_PR(gt, anomaly_score, max_window=4)
         score = vus_pr.get_score()
         self.assertTrue(score > 0.5)
         vus_pr = VUS_PR(gt, anomaly_score, max_window=0)
         score = vus_pr.get_score()
         self.assertTrue(score < 0.5)
-        
-
 
     def test_vus_roc(self):
         gt = [[0, 1]]
-        anomaly_score = [0,1,2,3,4,5,6,7,8,9]
-        vus= VUS_ROC(gt, anomaly_score, max_window=4)
+        anomaly_score = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+        vus = VUS_ROC(gt, anomaly_score, max_window=4)
 
         score = vus.get_score()
         self.assertTrue(score <= 0.1)
 
-        gt = [[1,3]]
-        anomaly_score = [8,0,9,1,7,2,3,4,5,6]
-        vus= VUS_ROC(gt, anomaly_score, max_window=4)
+        gt = [[1, 3]]
+        anomaly_score = [8, 0, 9, 1, 7, 2, 3, 4, 5, 6]
+        vus = VUS_ROC(gt, anomaly_score, max_window=4)
         score = vus.get_score()
         self.assertTrue(score > 0.4)
-        vus= VUS_ROC(gt, anomaly_score, max_window=0)
+        vus = VUS_ROC(gt, anomaly_score, max_window=0)
         score = vus.get_score()
         self.assertTrue(score < 0.4)
-
 
     def test_PatK(self):
         gt = [[2, 3]]
@@ -347,14 +343,13 @@ class Threshold_metric_tester(unittest.TestCase):
         score = patk.get_score()
         self.assertAlmostEqual(score, 2 / 3)
 
-        anomaly_score = [2,1,1,0]
-        patk = PatK_pw([0,1], anomaly_score)
+        anomaly_score = [2, 1, 1, 0]
+        patk = PatK_pw([0, 1], anomaly_score)
         score = patk.get_score()
-        self.assertAlmostEqual(score, 2/3)
+        self.assertAlmostEqual(score, 2 / 3)
 
-        patk = PatK_pw([], [0,1,2,4])
+        patk = PatK_pw([], [0, 1, 2, 4])
         self.assertRaises(AssertionError, patk.get_score)
-
 
     def test_best_threshold_pw(self):
         gt = [[2, 3]]

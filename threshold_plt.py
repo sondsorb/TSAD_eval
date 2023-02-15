@@ -4,10 +4,10 @@ from matplotlib import pyplot as plt
 
 x = np.arange(48)
 
-y = np.sin(0.7 + x / 12) + np.sin(x / 4 + 29) + 0.1 * np.sin(1.25*x) * (np.cos(np.sqrt(1.25*x) + 2)) + x / 32 + 0.12
+y = np.sin(0.7 + x / 12) + np.sin(x / 4 + 29) + 0.1 * np.sin(1.25 * x) * (np.cos(np.sqrt(1.25 * x) + 2)) + x / 32 + 0.12
 
 
-figsize=(3.4,2)
+figsize = (3.4, 2)
 plt.figure(figsize=figsize)
 
 plt.plot(x, y)
@@ -19,7 +19,7 @@ for t in [0.5, 1, 1.5, 2, 2.5]:
             plt.plot([x[i]], [t], ".r")
             plt.plot([x[i]], [t], "xw", markersize=2)
 
-fs=7
+fs = 7
 plt.xlabel("Time", fontsize=fs)
 plt.ylabel("Anomaly score / Threshold", fontsize=fs)
 plt.xticks(fontsize=fs)
