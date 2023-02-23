@@ -27,13 +27,15 @@ class Binary_detection_tester(unittest.TestCase):
         self.assertTrue(np.array_equal(np.array(anom1), d.get_predicted_anomalies_ptwise()))
         self.assertTrue(np.array_equal(np.array(anom2), d.get_gt_anomalies_segmentwise()))
 
-    def test_anomaly_binary_form(self):
+    def test_anomaly_full_seires(self):
         anom1 = [3, 4, 5, 7, 8, 11]
         d = Binary_detection(12, anom1, anom1)
 
-        self.assertTrue(np.array_equal(d.get_gt_anomalies_binary(), np.array([0, 0, 0, 1, 1, 1, 0, 1, 1, 0, 0, 1])))
         self.assertTrue(
-            np.array_equal(d.get_predicted_anomalies_binary(), np.array([0, 0, 0, 1, 1, 1, 0, 1, 1, 0, 0, 1]))
+            np.array_equal(d.get_gt_anomalies_full_series(), np.array([0, 0, 0, 1, 1, 1, 0, 1, 1, 0, 0, 1]))
+        )
+        self.assertTrue(
+            np.array_equal(d.get_predicted_anomalies_full_series(), np.array([0, 0, 0, 1, 1, 1, 0, 1, 1, 0, 0, 1]))
         )
 
     def test_empty_anom(self):
@@ -59,9 +61,6 @@ class Confusion_metrics_tester(unittest.TestCase):
         self.assertRaises(TypeError, f1_score, 3, 4, 5)
 
     def test_zerodivision(self):
-        # self.assertRaises(ZeroDivisionError, recall, tp=0, fn=0)
-        # self.assertRaises(ZeroDivisionError, precision, tp=0, fp=0)
-        # self.assertRaises(ZeroDivisionError, f1_score, tp=0, fp=1, fn=1)
         self.assertEqual(0, recall(tp=0, fn=0))
         self.assertEqual(0, precision(tp=0, fp=0))
         self.assertEqual(0, f1_score(tp=0, fp=1, fn=1))
@@ -129,10 +128,10 @@ class Metrics_tester(unittest.TestCase):
         self.assertEqual(pa.fn, 2)
 
     def test_Segment(self):
-        # s = Segmentwise_metrics(10, [[1,2],[4,4],[7,9]], [[0,6]])
-        # self.assertEqual(s.tp, 2)
-        # self.assertEqual(s.fp, 0)
-        # self.assertEqual(s.fn, 1)
+        s = Segmentwise_metrics(10, [[1, 2], [4, 4], [7, 9]], [[0, 6]])
+        self.assertEqual(s.tp, 2)
+        self.assertEqual(s.fp, 0)
+        self.assertEqual(s.fn, 1)
 
         s = Segmentwise_metrics(10, [[1, 2], [4, 4], [7, 9]], [[6, 6], [8, 8]])
         self.assertEqual(s.tp, 1)
@@ -190,6 +189,9 @@ class Metrics_tester(unittest.TestCase):
 
         n = NAB_score(10, [[3, 6]], [1])
         self.assertAlmostEqual(n.get_score(), -100 * 0.11 / 2)
+
+        n = NAB_score(10, [3, 6], [1])
+        self.assertTrue(np.isnan(n.get_score()))
 
     def test_ttol(self):
         t = Time_Tolerant(10, [3, 4, 8], [1, 2, 3], d=2)

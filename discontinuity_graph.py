@@ -1,10 +1,7 @@
 from maketable import *
 
 
-###########################
-### Discontinuity graph ###
-###########################
-class Discontinuity_table(Table):
+class Score_graphs_table(Table):
     def __init__(self, metric_names, results, marks=[]):
         self.metric_names = metric_names
         self.results = results
@@ -63,24 +60,32 @@ class Discontinuity_table(Table):
         self.add_line("\\end{tikzpicture}")
 
 
-def discontinuity_graphs():
-    result = {}
+def score_graphs():
+    # define scenario
     ts_length = 100
     pred_length = 5
     gt_length = 20
     gt_start = 40
     marks = [35, 40, 55, 60]
     assert pred_length % 2 == 1
-    metric_names = []
+
+    # prepare metrics list
     All_metrics.remove(metrics.Range_PR)
     all_metrics_and_rffront = [*All_metrics, metrics.Range_PR, Range_PR_front]
+
+    # make results and names
+    metric_names = []
+    result = {}
     for metric in all_metrics_and_rffront:
+        # set names
         if metric == metrics.TaF:
             metric_names.append(metric(5, [3, 4], [3], delta=10).name)
         elif metric == metrics.Time_Tolerant:
             metric_names.append(metric(5, [3, 4], [3], d=10).name)
         else:
             metric_names.append(metric(5, [3, 4], [3]).name)
+
+        # get results
         current_result = []
         for pred_mid in range(pred_length // 2, ts_length - pred_length // 2):
             gt = [[gt_start, gt_start + gt_length - 1]]
@@ -95,9 +100,10 @@ def discontinuity_graphs():
         current_result = (current_result - min(current_result)) / (max(current_result) - min(current_result))
         result[metric_names[-1]] = current_result
 
-    table = Discontinuity_table(metric_names, result, marks)
+    # make the table
+    table = Score_graphs_table(metric_names, result, marks)
     table.write()
     print(table)
 
 
-discontinuity_graphs()
+score_graphs()

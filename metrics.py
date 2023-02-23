@@ -12,7 +12,21 @@ from eTaPR_pkg.DataManage import File_IO, Range
 from vus.analysis.robustness_eval import generate_curve
 
 
+# NOTE:
+# Binary anomaly time series (either labels or predictions) are represented in 3 different ways.
+# This is done to suit the different metrics.
+#
+# Example:
+# A time series of length 10 (t=0 to t=9)  with anomalies at times t=2, t=6 and t=7 is represented like this:
+# Segmentwise: [[2,2], [6,7]]
+# Pointwise: [2,6,7]
+# Full_series: [0,0,1,0,0,0,1,1,0,0]
+#
+# The class Binary_anomalies is used to access these various formats.
+
+
 def pointwise_to_segmentwise(pointwise):
+    """Reformat anomaly time series from pointwise to segmentwise"""
     segmentwise = []
 
     prev = -10
@@ -26,6 +40,7 @@ def pointwise_to_segmentwise(pointwise):
 
 
 def segmentwise_to_pointwise(segmentwise):
+    """Reformat anomaly time series from segmentwise to pointwise"""
     pointwise = []
 
     for start, end in segmentwise:
@@ -35,11 +50,13 @@ def segmentwise_to_pointwise(segmentwise):
     return np.array(pointwise)
 
 
-def pointwise_to_binary(pointwise, length):
-    anomalies_binary = np.zeros(length)
+def pointwise_to_full_series(pointwise, length):
+    """Reformat anomaly time series from pointwise to full_series"""
+    anomalies_full_series = np.zeros(length)
     if len(pointwise) > 0:
-        anomalies_binary[pointwise] = 1
-    return anomalies_binary
+        assert pointwise[-1] < length
+        anomalies_full_series[pointwise] = 1
+    return anomalies_full_series
 
 
 class Binary_anomalies:
@@ -49,34 +66,50 @@ class Binary_anomalies:
 
     def _set_anomalies(self, anomalies):
         anomalies = np.array(anomalies)
-        if len(anomalies.shape) == 1:
+        if self._is_pointwise(anomalies):
             anomalies_ptwise = anomalies
             anomalies_segmentwise = pointwise_to_segmentwise(anomalies)
-        elif len(anomalies.shape) == 2:
+            anomalies_full_series = pointwise_to_full_series(anomalies_ptwise, self._length)
+        elif self._is_full_series(anomalies):
+            raise NotImplementedError
+        elif self._is_segmentwise(anomalies):
             anomalies_segmentwise = anomalies
             anomalies_ptwise = segmentwise_to_pointwise(anomalies)
+            anomalies_full_series = pointwise_to_full_series(anomalies_ptwise, self._length)
         else:
             raise ValueError(f"Illegal shape of anomalies:\n{anomalies}")
-
-        if len(anomalies_ptwise) > 0:
-            assert anomalies_ptwise[-1] < self._length
-        anomalies_binary = pointwise_to_binary(anomalies_ptwise, self._length)
 
         if len(anomalies_ptwise) > 0:
             assert all(anomalies_ptwise == np.sort(anomalies_ptwise))
             assert anomalies_ptwise[0] >= 0
             assert len(anomalies_ptwise) == len(np.unique(anomalies_ptwise))
-            assert len(anomalies_ptwise) == sum(anomalies_binary)
+            assert len(anomalies_ptwise) == sum(anomalies_full_series)
 
             assert all(anomalies_segmentwise[:, 0] == np.sort(anomalies_segmentwise[:, 0]))
             assert all(anomalies_segmentwise[:, 1] >= anomalies_segmentwise[:, 0])
 
         self.anomalies_segmentwise = anomalies_segmentwise
         self.anomalies_ptwise = anomalies_ptwise
-        self.anomalies_binary = anomalies_binary
+        self.anomalies_full_series = anomalies_full_series
+
+    def _is_pointwise(self, anomalies):
+        return len(anomalies.shape) == 1 and len(anomalies) < self._length
+
+    def _is_full_series(self, anomalies):
+        return len(anomalies.shape) == 1 and len(anomalies) == self._length
+
+    def _is_segmentwise(self, anomalies):
+        return len(anomalies.shape) == 2
+
+    def get_length(self):
+        return self._length
 
 
 class Binary_detection:
+    """This class represents a binary detection as a set of two time series:
+    gt: the binary labels
+    prediction: the binary predictions for corresponding to the labels"""
+
     def __init__(self, length, gt_anomalies, predicted_anomalies):
         self._length = length
         self._gt = Binary_anomalies(length, gt_anomalies)
@@ -97,11 +130,34 @@ class Binary_detection:
     def get_predicted_anomalies_segmentwise(self):
         return self._prediction.anomalies_segmentwise
 
-    def get_predicted_anomalies_binary(self):
-        return self._prediction.anomalies_binary
+    def get_predicted_anomalies_full_series(self):
+        return self._prediction.anomalies_full_series
 
-    def get_gt_anomalies_binary(self):
-        return self._gt.anomalies_binary
+    def get_gt_anomalies_full_series(self):
+        return self._gt.anomalies_full_series
+
+
+class Nonbinary_detection:
+    """This class represents a nonbinary detection as a set of two time series:
+    gt: the binary labels
+    anomaly score: the time series defining the degree of anomaly at each time point"""
+
+    def __init__(self, gt_anomalies, anomaly_score):
+        self._length = len(anomaly_score)
+        self._gt = Binary_anomalies(self._length, gt_anomalies)
+        self._anomaly_score = anomaly_score
+
+    def get_gt_anomalies_ptwise(self):
+        return self._gt.anomalies_ptwise
+
+    def get_gt_anomalies_segmentwise(self):
+        return self._gt.anomalies_segmentwise
+
+    def get_gt_anomalies_full_series(self):
+        return self._gt.anomalies_full_series
+
+    def get_anomaly_score(self):
+        return self._anomaly_score
 
 
 def f1_from_pr(p, r, beta=1):
@@ -110,10 +166,10 @@ def f1_from_pr(p, r, beta=1):
     return ((1 + beta**2) * r * p) / (beta**2 * p + r)
 
 
-def f1_score(*args, tp, fp, fn):
+def f1_score(*args, tp, fp, fn, beta=1):
     r = recall(tp=tp, fn=fn)
     p = precision(tp=tp, fp=fp)
-    return f1_from_pr(p, r)
+    return f1_from_pr(p, r, beta=beta)
 
 
 def recall(*args, tp, fn):
@@ -124,31 +180,22 @@ def precision(*args, tp, fp):
     return 0 if tp + fp == 0 else tp / (tp + fp)
 
 
-class original_PR_metric(Binary_detection):
-    # def __init__(self, *args):
-    #    super().__init__(*args)
-    def get_score(self):
-        return f1_score(tp=self.tp, fn=self.fn, fp=self.fp)
-
-
-class Pointwise_metrics(original_PR_metric):
+class Pointwise_metrics(Binary_detection):
     def __init__(self, *args):
         super().__init__(*args)
         self.name = "\\pwf[1]"
         self.set_confusion()
 
     def set_confusion(self):
-        gt = np.zeros(self.get_length())
-        if len(self.get_gt_anomalies_ptwise()) > 0:
-            gt[self.get_gt_anomalies_ptwise()] = 1
-
-        pred = np.zeros(self.get_length())
-        if len(self.get_predicted_anomalies_ptwise()) > 0:
-            pred[self.get_predicted_anomalies_ptwise()] = 1
+        gt = self.get_gt_anomalies_full_series()
+        pred = self.get_predicted_anomalies_full_series()
 
         self.tp = np.sum(pred * gt)
         self.fp = np.sum(pred * (1 - gt))
         self.fn = np.sum((1 - pred) * gt)
+
+    def get_score(self):
+        return f1_score(tp=self.tp, fn=self.fn, fp=self.fp)
 
 
 class DelayThresholdedPointAdjust(Pointwise_metrics):
@@ -216,15 +263,19 @@ class LatencySparsityAware(Binary_detection):
 
     def get_score(self):
         f1, p, r, FPR, self.tp, self.tn, self.fp, self.fn = latency_sparsity_aware.calc_twseq(
-            self.get_predicted_anomalies_binary(), self.get_gt_anomalies_binary(), normal=0, threshold=0.5, tw=self.tw
+            self.get_predicted_anomalies_full_series(),
+            self.get_gt_anomalies_full_series(),
+            normal=0,
+            threshold=0.5,
+            tw=self.tw,
         )
         return f1
 
 
-class Segmentwise_metrics(original_PR_metric):
+class Segmentwise_metrics(Pointwise_metrics):
     def __init__(self, *args):
-        self.name = "\\segf[1]"
         super().__init__(*args)
+        self.name = "\\segf[1]"
         self.set_confusion()
 
     def set_confusion(self):
@@ -364,12 +415,12 @@ class TaF(Redefined_PR_metric):
     def write_data_files(self):
         self.gt_filename = "temp_gt.txt"
         with open(self.gt_filename, "w") as f:
-            for x in self.get_gt_anomalies_binary():
+            for x in self.get_gt_anomalies_full_series():
                 f.write(str(1 if x == 0 else -1))
                 f.write("\n")
         self.pred_filename = "temp_pred.txt"
         with open(self.pred_filename, "w") as f:
-            for x in self.get_predicted_anomalies_binary():
+            for x in self.get_predicted_anomalies_full_series():
                 f.write(str(1 if x == 0 else -1))
                 f.write("\n")
 
@@ -411,12 +462,12 @@ class eTaF(Redefined_PR_metric):
     def write_data_files(self):
         self.gt_filename = "temp_gt.txt"
         with open(self.gt_filename, "w") as f:
-            for x in self.get_gt_anomalies_binary():
+            for x in self.get_gt_anomalies_full_series():
                 f.write(str(1 if x == 0 else -1))
                 f.write("\n")
         self.pred_filename = "temp_pred.txt"
         with open(self.pred_filename, "w") as f:
-            for x in self.get_predicted_anomalies_binary():
+            for x in self.get_predicted_anomalies_full_series():
                 f.write(str(1 if x == 0 else -1))
                 f.write("\n")
 
@@ -431,9 +482,7 @@ class eTaF(Redefined_PR_metric):
         return self.result["eTaP"]
 
 
-class Time_Tolerant(
-    Redefined_PR_metric
-):  # Although ttol could be considered adjusted pointwise, it is implemented as redefined precision/recall
+class Time_Tolerant(Redefined_PR_metric):
     def __init__(self, *args, d=2):
         super().__init__(*args)
         self.d = d
@@ -447,8 +496,8 @@ class Time_Tolerant(
 
     def get_kwargs(self):
         return {
-            "A": np.pad(self.get_predicted_anomalies_binary(), self.d),
-            "E": np.pad(self.get_gt_anomalies_binary(), self.d),
+            "A": np.pad(self.get_predicted_anomalies_full_series(), self.d),
+            "E": np.pad(self.get_gt_anomalies_full_series(), self.d),
             "d": self.d,
         }
 
@@ -482,55 +531,28 @@ class NAB_score(Binary_detection):
 
     def get_score(self):
         if len(self.get_predicted_anomalies_ptwise()) == 0:
-            return 0  # raw_score == null_score
+            return 0  # raw_score == null_score yeilds score = 0
         if len(self.get_gt_anomalies_ptwise()) == 0:
-            return np.nan  # perfect_score == null_score
-
+            return np.nan  # perfect_score == null_score yields /0
         try:
-            scoresByThreshold = self.get_scoresByThreshold(self.get_predicted_anomalies_ptwise())
-
-            null_score = scoresByThreshold[0].score
-            raw_score = scoresByThreshold[1].score
-
-            scoresByThreshold = self.get_scoresByThreshold(self.get_gt_anomalies_ptwise())
-            assert scoresByThreshold[1].total == scoresByThreshold[1].tp + scoresByThreshold[1].tn
-            perfect_score = scoresByThreshold[1].score
-
+            null_score, raw_score = self.calculate_scores(self.get_predicted_anomalies_ptwise())
+            null_score, perfect_score = self.calculate_scores(prediction=self.get_gt_anomalies_ptwise())
             return (raw_score - null_score) / (perfect_score - null_score) * 100
         except ZeroDivisionError:
             return np.nan
 
-    def get_scoresByThreshold(self, prediction):
-        anomaly_scores = pointwise_to_binary(prediction, self.get_length())
+    def calculate_scores(self, prediction):
+        anomaly_scores = pointwise_to_full_series(prediction, self.get_length())
         timestamps = np.arange(self.get_length())
         windowLimits = self.get_gt_anomalies_segmentwise()
         dataSetName = "dummyname"
         anomalyList = self.sweeper.calcSweepScore(timestamps, anomaly_scores, windowLimits, dataSetName)
         scoresByThreshold = self.sweeper.calcScoreByThreshold(anomalyList)
 
-        assert scoresByThreshold[0].threshold == 1.1
-        assert scoresByThreshold[1].threshold == 1.0
+        assert scoresByThreshold[0].threshold == 1.1  # all points regarded normal
+        assert scoresByThreshold[1].threshold == 1.0  # anomal points regarded anomal
 
-        return scoresByThreshold
-
-
-class Nonbinary_detection:
-    def __init__(self, gt_anomalies, anomaly_score):
-        self._length = len(anomaly_score)
-        self._gt = Binary_anomalies(self._length, gt_anomalies)
-        self._anomaly_score = anomaly_score
-
-    def get_gt_anomalies_ptwise(self):
-        return self._gt.anomalies_ptwise
-
-    def get_gt_anomalies_segmentwise(self):
-        return self._gt.anomalies_segmentwise
-
-    def get_gt_anomalies_binary(self):
-        return self._gt.anomalies_binary
-
-    def get_anomaly_score(self):
-        return self._anomaly_score
+        return scoresByThreshold[0].score, scoresByThreshold[1].score
 
 
 class Best_threshold_pw(Nonbinary_detection):
@@ -545,10 +567,8 @@ class Best_threshold_pw(Nonbinary_detection):
         return np.nanmax(scores)
 
     def get_score_given_anomaly_score_and_threshold(self, threshold):
-        gt = self.get_gt_anomalies_binary()
-
+        gt = self.get_gt_anomalies_full_series()
         pred = np.array(self.get_anomaly_score()) >= threshold
-
         return f1_score(tp=pred @ gt, fn=(1 - pred) @ gt, fp=(1 - gt) @ pred)
 
 
@@ -558,7 +578,7 @@ class AUC_ROC(Nonbinary_detection):
         super().__init__(*args)
 
     def get_score(self):
-        gt = self.get_gt_anomalies_binary()
+        gt = self.get_gt_anomalies_full_series()
         return roc_auc_score(gt, self.get_anomaly_score())
 
 
@@ -568,7 +588,7 @@ class AUC_PR_pw(Nonbinary_detection):
         super().__init__(*args)
 
     def get_score(self):
-        gt = self.get_gt_anomalies_binary()
+        gt = self.get_gt_anomalies_full_series()
         return average_precision_score(gt, self.get_anomaly_score())
 
 
@@ -579,7 +599,7 @@ class VUS_ROC(Nonbinary_detection):
         self.max_window = max_window
 
     def get_score(self):
-        gt = np.array(self.get_gt_anomalies_binary())
+        gt = np.array(self.get_gt_anomalies_full_series())
         score = np.array(self.get_anomaly_score())
         _, _, _, _, _, _, roc, pr = generate_curve(gt, score, self.max_window)
         return roc
@@ -592,7 +612,7 @@ class VUS_PR(Nonbinary_detection):
         self.max_window = max_window
 
     def get_score(self):
-        gt = np.array(self.get_gt_anomalies_binary())
+        gt = np.array(self.get_gt_anomalies_full_series())
         score = np.array(self.get_anomaly_score())
         _, _, _, _, _, _, roc, pr = generate_curve(gt, score, self.max_window)
         return pr
@@ -604,7 +624,7 @@ class PatK_pw(Nonbinary_detection):
         self.name = f"\\patk[{len(self.get_gt_anomalies_ptwise())}]"
 
     def get_score(self):
-        gt = self.get_gt_anomalies_binary()
+        gt = self.get_gt_anomalies_full_series()
 
         k = int(sum(gt))
         assert k > 0
