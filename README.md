@@ -1,6 +1,6 @@
 # TSAD_eval
 
-This repository contains experiments for several evaluation metrics for time series anomaly detection, for a paper that is not yet made openly available.
+This repository contains experiments for several evaluation metrics for time series anomaly detection, for the paper "Navigating the Metric Maze: A Taxonomy of Evaluation Metrics for Anomaly Detection in Time Series", available on arXiv very soon.
 
 The repo is planned to be cleaned up soon.
 
